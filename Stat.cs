@@ -27,17 +27,17 @@ namespace DungeonCrawler
 
         private bool inBounds(int value)
         {
-            Console.WriteLine("Bounds check: " + (value > MinValue && value < MaxValue));
-            return value > MinValue && value < MaxValue;
+            //Console.WriteLine("Bounds check: " + (value > MinValue && value < MaxValue));
+            return value >= MinValue && value <= MaxValue;
         }
 
         public void SetValue(int potentialValue)
         {
             if (inBounds(potentialValue)) 
             {
-                Console.WriteLine("Potential Value: " + potentialValue);
+                //Console.WriteLine("Potential Value: " + potentialValue);
                 Value = potentialValue;
-                Console.WriteLine("Current Value: " + Value);
+                //Console.WriteLine("Current Value: " + Value);
             }
             else if (potentialValue > MaxValue) 
             {
