@@ -6,19 +6,20 @@ namespace DungeonCrawler
     {
         static void Main(string[] args)
         {
-            var testEntity = new Entity
-            (
-                "Test",
-                1,
-                new AbilityScores(16, 12, 9, 6, 8, 8),
-                new Die(8)
-            );
+            // var testEntity = new Entity
+            // (
+            //     "Test",
+            //     10,
+            //     'c',
+            //     new[]{10, 6, 10, 10, 10, 10}
+            // );
+            // Console.WriteLine(testEntity.GetDescription());
 
-            // Console.WriteLine(testEntity.HitDie.Roll(1, 0));
-            // Console.WriteLine(testEntity.AbilityScores.STR.Value);
-            // testEntity.Level.SetValue(2);
-            // Console.WriteLine($"{testEntity.Name}, lvl {testEntity.Level.Value} has a hit die of d{testEntity.HitDie.NumSides.Value}, and total HP of {testEntity.HP}.");
-            testEntity.HitDie.Roll(10, 1, true);
+            var player1 = new Player("Richard", 5, 'm', new[]{8, 12, 10, 10, 12, 16}, new Dwarf(), new Cleric());
+
+            Console.WriteLine(player1.GetDescription());
+            Console.WriteLine(player1.Caste.GetDescription());
+            player1.AbilityCheck("WIS");
         }
     }
 }

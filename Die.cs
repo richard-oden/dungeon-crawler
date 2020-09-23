@@ -58,6 +58,7 @@ namespace DungeonCrawler
                 total += thisRoll;
             }
             output += $"{modifier} = ";
+            total += modifier;
             if (printOutput)
             {
                 output += total;
