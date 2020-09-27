@@ -20,15 +20,8 @@ namespace DungeonCrawler
         }
         public Stat Level {get; protected set;} = new Stat("Level", 1, 100);
         protected int _experience;
-        protected Dictionary<string, Stat> _abilityScores = new Dictionary<string, Stat>()
-        {
-            {"STR", new Stat("Strength", 0, 20)},
-            {"CON", new Stat("Constitution", 0, 20)},
-            {"DEX", new Stat("Dexterity", 0, 20)},
-            {"INT", new Stat("Intelligence", 0, 20)},
-            {"WIS", new Stat("Wisdom", 0, 20)},
-            {"CHA", new Stat("Charisma", 0, 20)}
-        };
+        public AbilityScores AbilityScores {get; protected set;}
+        public virtual int ArmorClass => 10 + (AbilityScores.TotalScores["CON"] > AbilityScores.TotalScores["DEX"] ? getModifier("CON") : getModifier("DEX"));
         protected Die _hitDie;
         protected int _hp;
         public Entity(string name, int level, char gender, int[] abilityScoreValues = null, Die hitDie = null)
@@ -36,14 +29,7 @@ namespace DungeonCrawler
             Name = name;
             Level.SetValue(level);
             Gender = gender;
-
-            abilityScoreValues ??= new int[] {10, 10, 10, 10, 10, 10};
-            int i = 0;
-            foreach (KeyValuePair<string, Stat> abilScore in _abilityScores)
-            {
-                abilScore.Value.SetValue(abilityScoreValues[i]);
-                i++;
-            }
+            AbilityScores = (abilityScoreValues == null) ? new AbilityScores() : new AbilityScores(abilityScoreValues);
 
             _experience = 0;
             hitDie ??= new Die(6);
@@ -51,21 +37,21 @@ namespace DungeonCrawler
             _hp = 0;
             for (int j = 0; j < Level.Value; j++)
             {
-                _hp += _hitDie.Roll(1, getModifier(_abilityScores["CON"]));
+                _hp += _hitDie.Roll(1, getModifier("CON"));
             }
         }
 
-        protected int getModifier(Stat abilityScore)
+        protected int getModifier(string abilityScore)
         {
-            return (int)Math.Floor(((double)abilityScore.Value - 10.0) / 2.0);
+            return (int)Math.Floor(((double)AbilityScores.TotalScores[abilityScore] - 10.0) / 2.0);
         }
 
         public int AbilityCheck(string abil)
         {
-            if (_abilityScores.ContainsKey(abil))
+            if (AbilityScores.BaseScores.ContainsKey(abil))
             {
-                Console.WriteLine($"Rolling {_abilityScores[abil].Name} check for {this.Name}...");
-                return D20.Roll(1, getModifier(_abilityScores[abil]), true);
+                Console.WriteLine($"Rolling {AbilityScores.BaseScores[abil].Name} check for {this.Name}...");
+                return D20.Roll(1, getModifier(abil), true);
             }
             else 
             {

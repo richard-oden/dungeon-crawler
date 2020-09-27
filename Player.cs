@@ -1,14 +1,9 @@
 namespace DungeonCrawler
 {
-    public class Player : Entity
+    public class Player : SentientCreature
     {
-        public Race Race {get; private set;}
-        public Caste Caste {get; private set;}
-        public Player(string name, int level, char gender, int[] abilityScoreValues, Race race, Caste caste) : base(name, level, gender, abilityScoreValues, null)
+        public Player(string name, int level, char gender, int[] abilityScoreValues, Race race, Caste caste) : base(name, level, gender, abilityScoreValues, race, caste)
         {
-            Race = race;
-            Caste = caste;
-            _hitDie = race.HitDie;
         }
 
         public override string GetDescription()
