@@ -24,12 +24,23 @@ namespace DungeonCrawler
         public virtual int ArmorClass => 10 + (AbilityScores.TotalScores["CON"] > AbilityScores.TotalScores["DEX"] ? getModifier("CON") : getModifier("DEX"));
         protected Die _hitDie;
         protected int _hp;
+        protected double _maxCarryWeight => AbilityScores.TotalScores["STR"] * 15;
+        protected double _currentWeightCarried
+        {
+            get
+            {
+                double totalWeight = 0;
+                foreach (var i in Items) totalWeight += i.Weight;
+                return totalWeight;
+            }
+        }
+        public List<Item> Items {get; protected set;} = new List<Item>();
         public Entity(string name, int level, char gender, int[] abilityScoreValues = null, Die hitDie = null)
         {
             Name = name;
             Level.SetValue(level);
             Gender = gender;
-            AbilityScores = (abilityScoreValues == null) ? new AbilityScores() : new AbilityScores(abilityScoreValues);
+            AbilityScores = new AbilityScores(abilityScoreValues);
 
             _experience = 0;
             hitDie ??= new Die(6);
@@ -62,6 +73,18 @@ namespace DungeonCrawler
         public virtual string GetDescription()
         {
             return $"{Name} lvl {Level.Value} has a hit die of d{_hitDie.NumSides.Value}, and total HP of {_hp}.";
+        }
+
+        public virtual void AddItem(Item newItem)
+        {
+            if (_currentWeightCarried + newItem.Weight <= _maxCarryWeight)
+            {
+                Items.Add(newItem);
+            }
+            else
+            {
+                Console.WriteLine($"{this.Name} cannot carry any more weight!");
+            }
         }
     }
 }

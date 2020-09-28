@@ -8,5 +8,14 @@ namespace DungeonCrawler
         public double Value {get; protected set;}
         public double Weight {get; protected set;}
         public Dictionary<string, int> AbilityMods {get; protected set;}
+
+        public Item(string name, double value, double weight, Dictionary<string, int> abilityMods = null)
+        {
+            Name = name;
+            Value = value;
+            Weight = weight;
+            abilityMods ??= new Dictionary<string, int>();
+            AbilityMods = abilityMods;
+        }
     }
 }

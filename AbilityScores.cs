@@ -34,45 +34,54 @@ namespace DungeonCrawler
                 return output;
             }
         }
-        
-        public AbilityScores()
-        {
-            foreach (var score in BaseScores) score.Value.SetValue(10);
-            RacialMods = new Dictionary<string, int>();
-            ItemMods = new Dictionary<string, int>();
-            TempMods = new Dictionary<string, int>();
-        }
         public AbilityScores(int[] scores)
         {
-            int i = 0;
-            foreach (var score in BaseScores)
+            if (scores == null)
             {
-                score.Value.SetValue(scores[i]);
-                i++;
+                foreach (var score in BaseScores) score.Value.SetValue(10);
             }
+            else
+            {
+                int i = 0;
+                foreach (var score in BaseScores)
+                {
+                    score.Value.SetValue(scores[i]);
+                    i++;
+                }
+            }
+            AddMods(RacialMods, new Dictionary<string, int>());
+            AddMods(ItemMods, new Dictionary<string, int>());
+            AddMods(TempMods, new Dictionary<string, int>());
         }
-        public AbilityScores(int[] scores, Dictionary<string, int> racialMods, Dictionary<string, int> itemMods,  Dictionary<string, int> tempMods) : this(scores)
+        public AbilityScores(int[] scores, Dictionary<string, int> racialMods, Dictionary<string, int> itemMods,  Dictionary<string, int> tempMods)
         {
-            SetMods(RacialMods, racialMods);
-            SetMods(ItemMods, itemMods);
-            SetMods(TempMods, tempMods);
+            AddMods(RacialMods, racialMods);
+            AddMods(ItemMods, itemMods);
+            AddMods(TempMods, tempMods);
         }
         
         //Take subset of mods to be applied, generate full set of modifiers:
-        public void SetMods(Dictionary<string, int> currentMods, Dictionary<string, int> newModsSubset)
+        public void AddMods(Dictionary<string, int> currentMods, Dictionary<string, int> newModsSubset)
         {
+            // Console.WriteLine("Attempting to add mods...");
             foreach (var abil in BaseScores)
             {
                 int modifier = 0;
-                if (newModsSubset.ContainsKey(abil.Key)) modifier += newModsSubset[abil.Key];
+                if (newModsSubset.ContainsKey(abil.Key))
+                {
+                    modifier += newModsSubset[abil.Key];
+                    // Console.WriteLine($"Modifier for {abil.Key} is {modifier}");
+                }
 
                 // Add to modifiers if already generated:
                 if (currentMods.ContainsKey(abil.Key))
                 {
+                    // Console.WriteLine($"Matching key '{abil.Key}' found, adding modifier of {modifier}...");
                     currentMods[abil.Key] += modifier;
                 }
                 else
                 {
+                    // Console.WriteLine($"Creating new key '{abil.Key}' with modifier of {modifier}...");
                     currentMods.Add(abil.Key, modifier);
                 }
             }
