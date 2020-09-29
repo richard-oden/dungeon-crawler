@@ -10,7 +10,7 @@ namespace DungeonCrawler
             AbilityProficiency = "CON";
             ArmorProficiency = "leather";
             CanUseShield = false;
-            WeaponProficiency = new List<string> {"maul", "axe", "gloves"};
+            WeaponProficiency = new List<string> {"maul", "axe", "scimitar"};
         }
     }
 }

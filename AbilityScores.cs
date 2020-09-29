@@ -91,7 +91,7 @@ namespace DungeonCrawler
         {
             char plusOrMinus(int mod)
             {
-                 return mod > 0 ? '+' : '-';
+                 return mod >= 0 ? '+' : '-';
             }
 
             string output = "";

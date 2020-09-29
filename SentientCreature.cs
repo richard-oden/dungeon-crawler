@@ -9,6 +9,16 @@ namespace DungeonCrawler
     {
         public Race Race {get; protected set;}
         public Caste Caste {get; protected set;}
+        public override int ArmorClass
+        {
+            get
+            {
+                int score = 10 + (AbilityScores.TotalScores["CON"] > AbilityScores.TotalScores["DEX"] ? getModifier("CON") : getModifier("DEX"));
+                var armor = from i in Items where i is Armor select (Armor)i;
+                score += armor.Sum(a => a.ArmorClassBonus);
+                return score;
+            }
+        }
         public SentientCreature(string name, int level, char gender, int[] abilityScoreValues, Race race, Caste caste) : base(name, level, gender, abilityScoreValues, null)
         {
             Race = race;
@@ -32,7 +42,12 @@ namespace DungeonCrawler
                 if (equippedArmor.Any(a => a.Slot == newArmor.Slot)) 
                 {
                     canAddItem = false;
-                    Console.WriteLine($"{this.Name} already has {newArmor.Slot} armor equipped!");
+                    Console.WriteLine($"{Name} already has {newArmor.Slot} armor equipped.");
+                }
+                if (newArmor.Material != Caste.ArmorProficiency)
+                {
+                    canAddItem = false;
+                    Console.WriteLine($"{Name} cannot wear {newArmor.Name} because it is {newArmor.Material}. A {Caste.Name} can only wear {Caste.ArmorProficiency} armor.");
                 }
             }
             if (newItem is Weapon)
@@ -42,19 +57,23 @@ namespace DungeonCrawler
                 if (heldWeapons.Any(w => w.TwoHanded) || heldWeapons.Where(w => !w.TwoHanded).Count() >= 2) 
                 {
                     canAddItem = false;
-                    Console.WriteLine($"{this.Name} cannot hold any more weapons!");
+                    Console.WriteLine($"{Name} cannot hold any more weapons.");
                 }
             }
             if (_currentWeightCarried + newItem.Weight > _maxCarryWeight) 
             {
                 canAddItem = false;
-                Console.WriteLine($"{newItem.Name} is too heavy for {this.Name} to carry!");
+                Console.WriteLine($"{newItem.Name} is too heavy for {Name} to carry.");
             }
 
             if (canAddItem) 
             {
                 Items.Add(newItem);
                 AbilityScores.AddMods(AbilityScores.ItemMods, newItem.AbilityMods);
+                if (newItem is Armor)
+                {
+                    var newArmor = (Armor)newItem;
+                }
             }
 
         }
