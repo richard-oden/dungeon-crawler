@@ -4,9 +4,8 @@ namespace DungeonCrawler
 {
     public class Axe : Weapon
     {
-        protected Axe(string name, double value, double weight, bool twoHanded, Die damageDie = null, string damageType = null, Dictionary<string, int> abilityMods = null) : base(name, value, weight, twoHanded, abilityMods)
+        protected Axe(string name, double value, double weight, bool twoHanded, Die damageDie = null, string damageType = null, Dictionary<string, int> abilityMods = null, int attackBonus = 0, int damageBonus = 0) : base(name, value, weight, twoHanded, abilityMods, attackBonus, damageBonus)
         {
-            TwoHanded = twoHanded;
             Type = "axe";
 
             damageDie ??= Dice.D10;

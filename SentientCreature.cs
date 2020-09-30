@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static DungeonCrawler.Dice;
 
 namespace DungeonCrawler
 {
@@ -76,6 +75,20 @@ namespace DungeonCrawler
                 }
             }
 
+        }
+    
+        public override int AttackRoll()
+        {
+            if (!Items.Any(i => i is Weapon))
+            {
+                return base.AttackRoll();
+            }
+            else
+            {
+                var heldWeapons = from i in Items where i is Weapon select (Weapon)i;
+                int weaponAttackBonus = heldWeapons.Sum(w => w.AttackBonus);
+                return Dice.D20.Roll(1, (getModifier(Caste.AbilityProficiency) + weaponAttackBonus));
+            }
         }
     }
 }

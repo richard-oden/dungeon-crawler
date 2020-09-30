@@ -83,8 +83,27 @@ namespace DungeonCrawler
             }
             else
             {
-                Console.WriteLine($"{this.Name} cannot carry any more weight!");
+                Console.WriteLine($"{Name} cannot carry any more weight!");
             }
+        }
+
+        public void RemoveItem(Item heldItem)
+        {
+            if (Items.Contains(heldItem))
+            {
+                Items.Remove(heldItem);
+            }
+            else
+            {
+                string article = "AEIOUaeiou".IndexOf(heldItem.Name[0]) >= 0 ? "an" : "a";
+                Console.WriteLine($"{Name} does not currently have {article} {heldItem.Name}.");
+            }
+        }
+
+        public virtual int AttackRoll()
+        {
+            int mod = AbilityScores.TotalScores["CON"] > AbilityScores.TotalScores["DEX"] ? getModifier("CON") : getModifier("DEX");
+            return Dice.D20.Roll(1, mod);
         }
     }
 }
