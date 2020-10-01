@@ -87,6 +87,12 @@ namespace DungeonCrawler
             }
         }
 
+        public string GetShortDescription()
+        {
+            string output = "";
+            foreach (var abil in TotalScores) output += $"{abil.Key}: {abil.Value} ";
+            return output;
+        }
         public string GetDescription()
         {
             char plusOrMinus(int mod)

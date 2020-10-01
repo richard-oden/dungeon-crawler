@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace DungeonCrawler
 {
@@ -65,6 +66,44 @@ namespace DungeonCrawler
                 Console.WriteLine(output);
             }
             return total;
+        }
+    
+        // Alternative return type that shows natural rolls and modifier:
+        public class Result
+        {
+            public List<int> NaturalResults {get; private set;}
+            public int TotalResult {get; private set;}
+            public int Modifier {get; private set;}
+
+            public Result(List<int> naturalResults, int totalResult, int modifier)
+            {
+                NaturalResults = naturalResults;
+                TotalResult = totalResult;
+                Modifier = modifier;
+            }
+        }
+
+        // Useful when access to natural roll is needed:
+        public Result RollGetResult(int multiplier = 1, int modifier = 0, bool printOutput = false)
+        {
+            string output = $"Rolling {multiplier}d{NumSides.Value}+{modifier}: ";
+            var naturalResults = new List<int>();
+            int total = 0;
+            for (int i = 0; i < multiplier; i++) 
+            {   
+                int thisRoll = Roll();
+                naturalResults.Add(thisRoll);
+                output += $"{thisRoll} + ";
+                total += thisRoll;
+            }
+            if (modifier != 0) output += $"{modifier} = ";
+            total += modifier;
+            if (printOutput)
+            {
+                output += total;
+                Console.WriteLine(output);
+            }
+            return new Result(naturalResults, total, modifier);         
         }
     }
 }

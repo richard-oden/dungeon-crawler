@@ -24,6 +24,8 @@ namespace DungeonCrawler
         public virtual int ArmorClass => 10 + (AbilityScores.TotalScores["CON"] > AbilityScores.TotalScores["DEX"] ? getModifier("CON") : getModifier("DEX"));
         protected Die _hitDie;
         protected int _hp;
+        protected Stat _currentHp;
+        public bool IsDead {get; protected set;} = false;
         protected double _maxCarryWeight => AbilityScores.TotalScores["STR"] * 15;
         protected double _currentWeightCarried
         {
@@ -50,6 +52,7 @@ namespace DungeonCrawler
             {
                 _hp += _hitDie.Roll(1, getModifier("CON"));
             }
+            _currentHp = new Stat("HP", 0, _hp, _hp);
         }
 
         protected int getModifier(string abilityScore)
@@ -73,6 +76,16 @@ namespace DungeonCrawler
         public virtual string GetDescription()
         {
             return $"{Name} lvl {Level.Value} has a hit die of d{_hitDie.NumSides.Value}, and total HP of {_hp}.";
+        }
+
+        public void ChangeHp(int amount)
+        {
+            _currentHp.ChangeValue(amount);
+            if (_currentHp.Value == 0)
+            {
+                IsDead = true;
+                Console.WriteLine($"{Name} has died!");
+            }
         }
 
         public virtual void AddItem(Item newItem)
@@ -99,11 +112,45 @@ namespace DungeonCrawler
                 Console.WriteLine($"{Name} does not currently have {article} {heldItem.Name}.");
             }
         }
-
-        public virtual int AttackRoll()
+        public string ListItems()
         {
-            int mod = AbilityScores.TotalScores["CON"] > AbilityScores.TotalScores["DEX"] ? getModifier("CON") : getModifier("DEX");
-            return Dice.D20.Roll(1, mod);
+            string output = "";
+            for (int i = 0; i < Items.Count; i++)
+            {
+                output += Items[i].Name;
+                if (i != Items.Count - 1) output += ", ";
+            }
+            return output;
+        }
+        public virtual Die.Result AttackRoll()
+        {
+            return Dice.D20.RollGetResult(1, getModifier("DEX"), true);
+        }
+
+        public virtual int DamageRoll(bool crit)
+        {
+            int multiplier = crit ? 2 : 1;
+            return Dice.D4.Roll(multiplier, getModifier("STR"), true);
+        }
+
+        public void DoAttack(Entity target)
+        {
+            Die.Result attackRollResult = AttackRoll();
+            bool crit = attackRollResult.NaturalResults[0] == 20;
+            if (crit) 
+            {
+                Console.WriteLine($"{Name} landed a critical hit on {target.Name}!");
+            }
+            else if (attackRollResult.TotalResult >= target.ArmorClass)
+            {
+                int damage = DamageRoll(crit);
+                Console.WriteLine($"{Name} inflicted {damage} points of damage on {target.Name}!");
+                target.ChangeHp(-1*damage);
+            }
+            else
+            {
+                Console.WriteLine($"{Name} missed {target.Name}!");
+            }
         }
     }
 }
