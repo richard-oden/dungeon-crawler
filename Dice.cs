@@ -1,6 +1,6 @@
 namespace DungeonCrawler
 {
-    static class Dice
+    public static class Dice
     {
         public static Die D4 {get; private set;} = new Die(4);
         public static Die D6 {get; private set;} = new Die(6);

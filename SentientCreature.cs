@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace DungeonCrawler
 {
-    public abstract class SentientCreature : Entity
+    public class SentientCreature : Entity
     {
         public Race Race {get; protected set;}
         public Caste Caste {get; protected set;}
@@ -18,7 +18,7 @@ namespace DungeonCrawler
                 return score;
             }
         }
-        public SentientCreature(string name, int level, char gender, int[] abilityScoreValues, Race race, Caste caste) : base(name, level, gender, abilityScoreValues, null)
+        public SentientCreature(string name, int level, char gender, int[] abilityScoreValues, Race race, Caste caste, Point location = null) : base(name, level, gender, abilityScoreValues, null, location)
         {
             Race = race;
             Caste = caste;

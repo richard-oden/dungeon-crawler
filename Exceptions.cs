@@ -17,4 +17,13 @@ namespace DungeonCrawler
         public InvalidAbilityException(string message) : base(message)
         {}
     }
+
+    class OutOfMapBoundsException : System.Exception
+    {
+        public OutOfMapBoundsException()
+        {}
+        
+        public OutOfMapBoundsException(string message) : base(message)
+        {}
+    }
 }

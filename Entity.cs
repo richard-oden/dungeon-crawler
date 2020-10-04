@@ -4,7 +4,7 @@ using static DungeonCrawler.Dice;
 
 namespace DungeonCrawler
 {
-    public class Entity
+    public class Entity : IMappable
     {
         public string Name {get; protected set;}
         public char Gender {get; protected set;}
@@ -37,7 +37,9 @@ namespace DungeonCrawler
             }
         }
         public List<Item> Items {get; protected set;} = new List<Item>();
-        public Entity(string name, int level, char gender, int[] abilityScoreValues = null, Die hitDie = null)
+        public Point Location {get; protected set;}
+        public virtual char Symbol {get; protected set;} = Symbols.Friendly;
+        public Entity(string name, int level, char gender, int[] abilityScoreValues = null, Die hitDie = null, Point location = null)
         {
             Name = name;
             Level.SetValue(level);
@@ -53,6 +55,8 @@ namespace DungeonCrawler
                 _hp += _hitDie.Roll(1, getModifier("CON"));
             }
             _currentHp = new Stat("HP", 0, _hp, _hp);
+
+            Location = location;
         }
 
         protected int getModifier(string abilityScore)
@@ -151,6 +155,11 @@ namespace DungeonCrawler
             {
                 Console.WriteLine($"{Name} missed {target.Name}!");
             }
+        }
+
+        public void SetLocation(Point location)
+        {   
+            Location = location;
         }
     }
 }
