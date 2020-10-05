@@ -26,4 +26,13 @@ namespace DungeonCrawler
         public OutOfMapBoundsException(string message) : base(message)
         {}
     }
+    
+    class DuplicationLocationException : System.Exception
+    {
+        public DuplicationLocationException()
+        {}
+        
+        public DuplicationLocationException(string message) : base(message)
+        {}
+    }
 }

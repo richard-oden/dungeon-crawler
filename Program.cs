@@ -14,7 +14,7 @@ namespace DungeonCrawler
                 "Frost Sword", 10, 10, true,
                 damageType: "fire"
             );
-            testSword.SetLocation(new Point(7, 8));
+            testSword.SetLocation(new Point(7, 10));
 
             // var testHammer = new Warhammer
             // (
@@ -50,7 +50,6 @@ namespace DungeonCrawler
             (
                 10, 10, new List<IMappable> 
                 {
-                    new Wall(new Point(0, 0)),
                     new Wall(new Point(1, 0)),
                     new Wall(new Point(2, 0)),
                     new Wall(new Point(3, 0)),
@@ -87,11 +86,14 @@ namespace DungeonCrawler
                     new Wall(new Point(9, 7)),
                     new Wall(new Point(9, 8)),
                     player1,
-                    sCreature1,
-                    testSword           
+                    sCreature1         
                 }
             );
-            map1.PrintMap();
+
+            map1.AddObject(testSword);
+
+            // Console.WriteLine(map1.OnMap(new Point(9, 9)));
+            // map1.PrintMap();
         }
     }
 }
