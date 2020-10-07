@@ -8,10 +8,10 @@ namespace DungeonCrawler
         public double Value {get; protected set;}
         public double Weight {get; protected set;}
         public Dictionary<string, int> AbilityMods {get; protected set;}
-        public Point Location {get; protected set;}
+        public MapPoint Location {get; protected set;}
         public char Symbol {get; protected set;} = Symbols.Item;
 
-        public Item(string name, double value, double weight, Dictionary<string, int> abilityMods = null, Point location = null)
+        public Item(string name, double value, double weight, Dictionary<string, int> abilityMods = null, MapPoint location = null)
         {
             Name = name;
             Value = value;
@@ -21,7 +21,7 @@ namespace DungeonCrawler
             Location = location;
         }
 
-        public void SetLocation(Point location)
+        public void SetLocation(MapPoint location)
         {   
             Location = location;
         }

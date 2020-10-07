@@ -1,5 +1,7 @@
 using System;
+using System.Runtime;
 using System.Collections.Generic;
+using System.Linq;
 using static DungeonCrawler.Dice;
 
 namespace DungeonCrawler
@@ -26,6 +28,7 @@ namespace DungeonCrawler
         protected int _hp;
         protected Stat _currentHp;
         public bool IsDead {get; protected set;} = false;
+        public int MovementSpeedFeet => 30 + (getModifier("DEX") * 5);
         protected double _maxCarryWeight => AbilityScores.TotalScores["STR"] * 15;
         protected double _currentWeightCarried
         {
@@ -37,9 +40,9 @@ namespace DungeonCrawler
             }
         }
         public List<Item> Items {get; protected set;} = new List<Item>();
-        public Point Location {get; protected set;}
+        public MapPoint Location {get; protected set;}
         public virtual char Symbol {get; protected set;} = Symbols.Friendly;
-        public Entity(string name, int level, char gender, int[] abilityScoreValues = null, Die hitDie = null, Point location = null)
+        public Entity(string name, int level, char gender, int[] abilityScoreValues = null, Die hitDie = null, MapPoint location = null)
         {
             Name = name;
             Level.SetValue(level);
@@ -157,9 +160,27 @@ namespace DungeonCrawler
             }
         }
 
-        public void SetLocation(Point location)
+        public void SetLocation(MapPoint location)
         {   
             Location = location;
+        }
+
+        public void Move(string direction, int distanceFeet)
+        {
+            // Enforce bounds checking:
+            var movementRange = new Stat($"{Name} Movement Range", 0, MovementSpeedFeet, distanceFeet);
+            int distancePoints = movementRange.Value / 5;
+            var tempLocation = Location.ShallowCopy;
+            tempLocation.Translate(direction, distancePoints);
+            if (Location.Map.Objects.Any(o => o.Location.X == tempLocation.X && o.Location.Y == tempLocation.Y))
+            {
+                Console.WriteLine($"Cannot move to ({tempLocation.X}, {tempLocation.Y}) because it is blocked!");
+                Console.ReadKey();
+            }
+            else
+            {
+                Location = tempLocation;
+            }
         }
     }
 }

@@ -2,8 +2,8 @@ namespace DungeonCrawler
 {
     public interface IMappable
     {
-        Point Location {get;}
+        MapPoint Location {get;}
         char Symbol {get;}
-        void SetLocation(Point Location);
+        void SetLocation(MapPoint Location);
     }
 }

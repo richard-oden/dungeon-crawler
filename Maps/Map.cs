@@ -1,4 +1,5 @@
 using System;
+using System.Runtime;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,34 +9,22 @@ namespace DungeonCrawler
     {
         public int Width {get; private set;}
         public int Height {get; private set;}
-        private List<IMappable> _objects;
-        public List<IMappable> Objects
-        {
-            get
-            {
-                return _objects;
-            }
-            private set
-            {
-                ValidateObjects(value);
-                _objects = value;
-            }
-        }
+        public List<IMappable> Objects {get; private set;}
         
-        public Map(int width, int height, List<IMappable> objects)
+        public Map(int width, int height)
         {
             Width = width;
             Height = height;
-            Objects = objects;
+            Objects = new List<IMappable>();
         }
         
-        public bool OnMap(Point point)
+        public bool OnMap(MapPoint point)
         {
             return point.X >= 0 && point.X < Width && 
                    point.Y >= 0 && point.Y < Height;
         }
 
-        public void ValidateObjects(List<IMappable> value)
+        private void validateObjects(List<IMappable> value)
         {
             var objectsOutOfBounds = value.Where(o => !OnMap(o.Location)).ToArray();
             var objectDuplicates = value.GroupBy(o => o.Location)
@@ -59,16 +48,16 @@ namespace DungeonCrawler
         {
             List<IMappable> tempObjects = Objects;
             tempObjects.Add(obj);
-            ValidateObjects(tempObjects);
+            validateObjects(tempObjects);
             Objects.Add(obj);
         }
 
         public void AddObjects(List<IMappable> objects)
         {
-            List<IMappable> tempObjects = objects;
-            tempObjects.Concat(objects);
-            ValidateObjects(tempObjects);
-            Objects.Concat(objects);
+            List<IMappable> tempObjects = Objects;
+            tempObjects = tempObjects.Concat(objects).ToList();
+            validateObjects(tempObjects);
+            Objects = Objects.Concat(objects).ToList();
         }
 
         public void PrintMap()
@@ -77,7 +66,7 @@ namespace DungeonCrawler
             {
                 for (int x = 0; x < Width; x++)
                 {
-                    var thisObject = Objects.SingleOrDefault(o => o.Location.X == x && o.Location.Y == y);
+                    var thisObject = Objects.FirstOrDefault(o => o.Location.X == x && o.Location.Y == y);
                     if (thisObject != null)
                     {
                         Console.Write(thisObject.Symbol + " ");

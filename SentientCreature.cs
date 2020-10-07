@@ -18,7 +18,7 @@ namespace DungeonCrawler
                 return score;
             }
         }
-        public SentientCreature(string name, int level, char gender, int[] abilityScoreValues, Race race, Caste caste, Point location = null) : base(name, level, gender, abilityScoreValues, null, location)
+        public SentientCreature(string name, int level, char gender, int[] abilityScoreValues, Race race, Caste caste, MapPoint location = null) : base(name, level, gender, abilityScoreValues, null, location)
         {
             Race = race;
             Caste = caste;
@@ -36,7 +36,7 @@ namespace DungeonCrawler
             string output = $"{Name}, lvl {Level.Value} {char.ToUpper(Gender)} {Race.Name} {Caste.Name}\n";
             output += $"HP: {_currentHp.Value} / {_hp} AC: {ArmorClass}\n";
             output += $"{AbilityScores.GetShortDescription()}\n";
-            output += $"Inventory: {ListItems()}";
+            output += $"Inventory: {(String.IsNullOrEmpty(ListItems()) ? "Empty" : ListItems())}";
             return output;
         }
 
