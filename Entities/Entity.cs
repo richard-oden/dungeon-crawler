@@ -173,7 +173,8 @@ namespace DungeonCrawler
             Location = location;
         }
 
-        public void Move(string direction, int distanceFeet)
+        // Returns true if successful move:
+        public bool Move(string direction, int distanceFeet)
         {
             // Enforce bounds checking:
             var movementRange = new Stat($"{Name} Movement Range", 0, MovementSpeedFeet, distanceFeet);
@@ -184,11 +185,16 @@ namespace DungeonCrawler
             {
                 Console.WriteLine($"Cannot move to ({tempLocation.X}, {tempLocation.Y}) because it is blocked!");
                 Console.ReadKey();
+                return false;
             }
             else
             {
                 Location = tempLocation;
+                return true;
             }
         }
+
+        public virtual void TakeTurn()
+        {}
     }
 }

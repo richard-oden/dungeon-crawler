@@ -116,6 +116,8 @@ namespace DungeonCrawler
             // }
             var combat1 = new Combat(new List<Entity> {player1, sentientNpc1, giantRat1, broodMother1});
             Console.WriteLine(combat1.GetInitiativeOrder());
+
+            player1.TakeTurn();
         }
     }
 }
