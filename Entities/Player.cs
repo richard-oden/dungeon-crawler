@@ -3,7 +3,7 @@ namespace DungeonCrawler
     public class Player : SentientCreature
     {
         public override char Symbol {get; protected set;} = Symbols.PlayerS;
-        public Player(string name, int level, char gender, int[] abilityScoreValues, Race race, Caste caste, MapPoint location = null) : base(name, level, gender, abilityScoreValues, race, caste, location)
+        public Player(string name, int level, char gender, int[] abilityScoreValues, Race race, Caste caste, MapPoint location = null) : base(name, level, gender, race, caste, abilityScoreValues, location)
         {
         }
 

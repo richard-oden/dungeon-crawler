@@ -6,7 +6,7 @@ using static DungeonCrawler.Dice;
 
 namespace DungeonCrawler
 {
-    public class Entity : IMappable
+    public abstract class Entity : IMappable
     {
         public string Name {get; protected set;}
         public char Gender {get; protected set;}
@@ -27,6 +27,7 @@ namespace DungeonCrawler
         protected Die _hitDie;
         protected int _hp;
         protected Stat _currentHp;
+        public int CurrentInitiative {get; protected set;}
         public bool IsDead {get; protected set;} = false;
         public int MovementSpeedFeet => 30 + (getModifier("DEX") * 5);
         protected double _maxCarryWeight => AbilityScores.TotalScores["STR"] * 15;
@@ -119,6 +120,7 @@ namespace DungeonCrawler
                 Console.WriteLine($"{Name} does not currently have {article} {heldItem.Name}.");
             }
         }
+        
         public string ListItems()
         {
             string output = "";
@@ -129,6 +131,12 @@ namespace DungeonCrawler
             }
             return output;
         }
+        
+        public void InitiativeRoll(int mod = 0)
+        {
+            CurrentInitiative = D20.Roll(1, (getModifier("DEX") + mod));
+        }
+        
         public virtual Die.Result AttackRoll()
         {
             return Dice.D20.RollGetResult(1, getModifier("DEX"), true);

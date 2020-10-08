@@ -1,5 +1,4 @@
 using System;
-using System.Runtime;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -57,7 +56,7 @@ namespace DungeonCrawler
             List<IMappable> tempObjects = Objects;
             tempObjects = tempObjects.Concat(objects).ToList();
             validateObjects(tempObjects);
-            Objects = Objects.Concat(objects).ToList();
+            Objects = tempObjects;
         }
 
         public void PrintMap()
