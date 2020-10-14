@@ -9,14 +9,14 @@ namespace DungeonCrawler
     {
         static void Main(string[] args)
         {
-            
+            Console.Clear();
             var map1 = new Map(10, 10);
             var testSword = new Sword
             (
-                "Frost Sword", 10, 10, true,
+                "Sword", 10, 10, true,
                 damageType: "ice"
             );
-            testSword.SetLocation(new MapPoint(7, 9, map1));
+            testSword.SetLocation(new MapPoint(6, 6, map1));
 
             // var testHammer = new Warhammer
             // (
@@ -59,6 +59,20 @@ namespace DungeonCrawler
                 abilityScoreValues: new []{16, 14, 10, 10, 18, 8},
                 location: new MapPoint(6, 5, map1)
             );
+            var player2 = new Player
+            (
+                name: "Eldfar", level: 10, gender: 'f',
+                race: new Elf("DEX", "WIS"), caste: new Cleric(),
+                abilityScoreValues: new []{16, 14, 10, 10, 18, 8},
+                location: new MapPoint(6, 6, map1)
+            );
+            var player3 = new Player
+            (
+                name: "Stinthad", level: 10, gender: 'f',
+                race: new Elf("DEX", "WIS"), caste: new Cleric(),
+                abilityScoreValues: new []{16, 14, 10, 10, 18, 8},
+                location: new MapPoint(6, 7, map1)
+            );
             map1.AddObjects
             (
                 new List<IMappable> 
@@ -100,9 +114,7 @@ namespace DungeonCrawler
                     new Wall(new MapPoint(9, 7, map1)),
                     new Wall(new MapPoint(9, 8, map1)),
                     player1,
-                    sentientNpc1,
-                    giantRat1,
-                    broodMother1         
+                    testSword       
                 }
             );
             // Movement input loop:
@@ -114,10 +126,8 @@ namespace DungeonCrawler
             //     player1.Move(direction, 5);
             //     Console.Clear();
             // }
-            var combat1 = new Combat(new List<Entity> {player1, sentientNpc1, giantRat1, broodMother1});
-            Console.WriteLine(combat1.GetInitiativeOrder());
-
-            player1.TakeTurn();
+            var combat1 = new Combat(new List<Entity> {player1});
+            combat1.StartCombat();
         }
     }
 }

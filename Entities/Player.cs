@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DungeonCrawler
 {
@@ -17,61 +18,89 @@ namespace DungeonCrawler
 
         public override void TakeTurn()
         {
-            var actions = new List<string>() {"major", "minor", "move"};
+            var actionsRemaining = new List<string>() {"major", "minor", "move"};
+            _movementRemaining = MovementSpeedFeet;
             bool turnOver = false;
             while (!turnOver)
             {
-                if (actions.Count <= 0) turnOver = true;
-                string actionsString = "";
-                for (int i = 0; i < actions.Count; i++) 
+                // Check if turn is over:
+                if (_movementRemaining <= 0) actionsRemaining.Remove("move");
+                if (actionsRemaining.Count == 0)
                 {
-                    actionsString += actions[i];
-                    if (i != actions.Count-1) actionsString += ", ";
-                    if (i == actions.Count-2) actionsString += "or ";
+                    Console.WriteLine($"{Name}'s turn is over because {Pronouns[0]} has no actions left.");
+                    turnOver = true;
                 }
-                Console.WriteLine("Select a type of action or type 'skip' to skip your turn: " + actionsString);
-                string actionInput = Console.ReadLine();
-                switch (actionInput.ToLower())
+
+                Location.Map.PrintMap();
+
+                // Prompt player:
+                Console.WriteLine($"\nEnter an action or type 'skip' to skip your turn. {Name} has a {actionsRemaining.FormatToString("and")} action remaining.\n");
+                foreach (var action in Actions) 
                 {
-                    case "major":
-                        
-                        break;
-                    case "minor":
-                        
-                        break;
-                    case "move":
-                        int movementRemaining = MovementSpeedFeet;
-                        while (movementRemaining > 0)
+                    if (actionsRemaining.Contains(action.Type)) Console.WriteLine($"- {action.Command} {action.Description} ({action.Type})");
+                }
+                Console.WriteLine("- move [direction] [distance] - Move to an unoccupied space. Enter abbreviated direction and distance in feet. (e.g., NW 20)");
+
+                string input = Console.ReadLine().ToLower();
+                if (Actions.Any(a => a.Command == input.Split(' ')[0]))
+                {
+                    string inputCommand = input.Split(' ')[0];
+                    IEntityAction inputAction = Actions.FirstOrDefault(a => a.Command == inputCommand);
+                    if (actionsRemaining.Contains(inputAction.Type))
+                    {
+                        if (inputAction is TargetedAction)
                         {
-                            Console.WriteLine("Enter the direction and distance in feet (e.g., 'N 20', 'SE 5', etc), or enter 'Q' to stop moving.");
-                            Console.WriteLine($"{Name} has {movementRemaining} feet of movement left.");
-                            Location.Map.PrintMap();
-                            string[] moveInput = Console.ReadLine().ToLower().Split(' ');
-                            if (moveInput[0] == "q") break;
-                            int distance = int.Parse(moveInput[1]);
-                            if (movementRemaining - distance >= 0)
-                            {
-                                if (Move(moveInput[0], distance))
-                                {
-                                    Console.Clear();
-                                    movementRemaining -= distance;
-                                }
-                            }
-                            else
-                            {
-                                Console.WriteLine($"{Name} cannot move {distance} feet, because {Pronouns[0].ToLower()} only has {movementRemaining} feet of movement left.");
-                            }
+                            var inputTargetedAction = (TargetedAction)inputAction;
+                            string inputTarget = string.Join(' ', input.Split(' ').Skip(1));
+                            if (inputTargetedAction.Execute(inputTarget)) actionsRemaining.Remove(inputAction.Type);
                         }
-                        break;
-                    case "skip":
-                        turnOver = true;
-                        break;
-                    default:
-                        Console.WriteLine($"'{actionInput}' is not a valid action type. Please select a valid type.");
-                        break;
+                        else if (inputAction is NonTargetedAction)
+                        {
+                            var inputNonTargetedAction = (NonTargetedAction)inputAction;
+                            if (inputNonTargetedAction.Execute()) actionsRemaining.Remove(inputAction.Type);
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{Name} does not have a {inputAction.Type} action remaining.");
+                    }
                 }
-                if (actions.Contains(actionInput)) actions.Remove(actionInput);
+                else if (input == "skip")
+                {
+                    turnOver = true;
+                }
+                else 
+                {
+                    Console.WriteLine($"'{input}' could not be recognized. Please enter a valid command.");
+                }
+                Console.Clear();
             }
+            Console.Clear();
+        }
+
+        public override void DoMove(string input)
+        {
+            var inputArr = input.ToLower().Split(' ');
+            if (inputArr.Length == 2)
+            {
+                string direction = inputArr[0];
+                int distance = int.Parse(inputArr[1]);
+                if (_movementRemaining - distance >= 0)
+                {
+                    if (Move(direction, distance)) _movementRemaining -= distance;
+                }
+                else
+                {
+                    Console.WriteLine($"{Name} cannot move {distance} feet, because {Pronouns[0].ToLower()} only has {_movementRemaining} feet of movement left.");
+                    Console.ReadKey();
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Input {input} is not valid.");
+                Console.ReadKey();
+            }
+            Console.Clear();
         }
     }
 }

@@ -40,7 +40,7 @@ namespace DungeonCrawler
             return output;
         }
 
-        public override void AddItem(Item newItem)
+        public override bool AddItem(Item newItem)
         {
             bool canAddItem = true;
             if (newItem is Armor)
@@ -83,12 +83,9 @@ namespace DungeonCrawler
             {
                 Items.Add(newItem);
                 AbilityScores.AddMods(AbilityScores.ItemMods, newItem.AbilityMods);
-                if (newItem is Armor)
-                {
-                    var newArmor = (Armor)newItem;
-                }
             }
 
+            return canAddItem;
         }
     
         public override Die.Result AttackRoll()

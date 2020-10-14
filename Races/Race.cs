@@ -24,15 +24,7 @@ namespace DungeonCrawler
 
         public string GetDescription()
         {
-            string article = "AEIOU".IndexOf(Name[0]) >= 0 ? "An" : "A";
-            string abilities = "";
-            for (int i = 0; i < NaturalAbilities.Count; i++)
-            {
-                abilities += NaturalAbilities[i];
-                if (i != NaturalAbilities.Count - 1) abilities += ", ";
-                if (i == NaturalAbilities.Count - 2) abilities += "or ";
-            }
-            return $"{article} {Name} may have better than average {abilities}, and its hit die is a d{HitDie.NumSides.Value}.";
+            return $"{Name.IndefiniteArticle()} {Name} may have better than average {NaturalAbilities.FormatToString("or")}, and its hit die is a d{HitDie.NumSides.Value}.";
         }
     }
 }

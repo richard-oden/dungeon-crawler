@@ -59,6 +59,18 @@ namespace DungeonCrawler
             Objects = tempObjects;
         }
 
+        public void RemoveObject(IMappable obj)
+        {
+            if (Objects.Contains(obj))
+            {
+                Objects.Remove(obj);
+            }
+            else
+            {
+                Console.WriteLine("Map does not contain object.");
+            }
+        }
+
         public void PrintMap()
         {
             for (int y = 0; y < Height; y++)

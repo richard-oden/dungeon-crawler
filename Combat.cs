@@ -22,8 +22,8 @@ namespace DungeonCrawler
             bool stillFighting = true;
             while (stillFighting)
             {
-                var npcs = (IEnumerable<INpc>)Combatants.Where(c => c is INpc);
-                var players = (IEnumerable<Player>)Combatants.Where(c => c is Player);
+                var npcs = from c in Combatants where c is INpc select (INpc)c;
+                var players = from c in Combatants where c is Player select (Player)c;
                 bool alliesWin = npcs.Any(n => n.Disposition < (Disposition)1);
                 bool enemiesWin = npcs.Any(n => n.Disposition > (Disposition)0) && !players.Any(p => !p.IsDead);
                 if (alliesWin || enemiesWin) stillFighting = false;
@@ -31,6 +31,7 @@ namespace DungeonCrawler
                 foreach (Entity combatant in Combatants)
                 {
                     Console.WriteLine($"It is {combatant.Name}'s turn.");
+                    combatant.TakeTurn();
                 }
             }
         }

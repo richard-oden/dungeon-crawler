@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace DungeonCrawler
 {
@@ -45,9 +47,15 @@ namespace DungeonCrawler
         {
             return DistanceTo(point.X, point.Y);
         }
+
         public bool InRangeOf(MapPoint point, int range)
         {
             return DistanceTo(point) <= range;
+        }
+
+        public List<IMappable> GetObjectsWithinRange(int range)
+        {
+            return Map.Objects.Where(o => InRangeOf(o.Location, range)).ToList();
         }
 
         public void Translate(string direction, int distance)
