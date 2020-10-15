@@ -6,7 +6,7 @@ using static DungeonCrawler.Dice;
 
 namespace DungeonCrawler
 {
-    public abstract class Entity : IMappable
+    public abstract class Entity : IMappable, INamed
     {
         public string Name {get; protected set;}
         public char Gender {get; protected set;}
@@ -44,7 +44,9 @@ namespace DungeonCrawler
         public List<Item> Items {get; protected set;} = new List<Item>();
         public MapPoint Location {get; protected set;}
         public virtual char Symbol {get; protected set;} = Symbols.Friendly;
+        public List<string> Statuses {get; protected set;}
         protected List<IEntityAction> Actions = new List<IEntityAction>();
+        public bool TakingTurn {get; protected set;}
 
         public Entity(string name, int level, char gender, int[] abilityScoreValues = null, Die hitDie = null, MapPoint location = null)
         {
@@ -71,6 +73,7 @@ namespace DungeonCrawler
             Actions.Add(new TargetedAction("take", "[item name] - Pick up an item within 5 feet.", "minor", PickUpItem));
             Actions.Add(new TargetedAction("drop", "[item name] - Drop an item in inventory.", "minor", DropItem));
             Actions.Add(new TargetedAction("use", "[item name] - Use an item in inventory.", "minor", UseItem));
+            Actions.Add(new TargetedAction("move", "[direction] [distance] - Move to an unoccupied space. Enter abbreviated direction and distance in feet. (e.g., NW 20)", "move", Move));
         }
 
         protected int getModifier(string abilityScore)
@@ -160,52 +163,26 @@ namespace DungeonCrawler
         {   
             Location = location;
         }
-
-        // Returns true if successful move:
-        public bool Move(string direction, int distanceFeet)
+        public virtual void TakeTurn()
+        {}
+        public bool Search()
         {
-            // Enforce bounds checking:
-            var movementRange = new Stat($"{Name} Movement Range", 0, MovementSpeedFeet, distanceFeet);
-            int distancePoints = movementRange.Value / 5;
-            var tempLocation = Location.ShallowCopy;
-            tempLocation.Translate(direction, distancePoints);
-            if (Location.Map.Objects.Any(o => o.Location.X == tempLocation.X && o.Location.Y == tempLocation.Y))
+            int rangeFeet = 20 + getModifier("WIS") * 5;
+            var foundObjects = Location.GetObjectsWithinRange(rangeFeet / 5).Where(o => o is INamed && o != this).ToArray();
+            if (foundObjects.Length == 0)
             {
-                Console.WriteLine($"Cannot move to ({tempLocation.X}, {tempLocation.Y}) because it is blocked!");
-                Console.ReadLine();
-                return false;
+                Console.WriteLine($"{Name} searched but couldn't find anything!");
             }
             else
             {
-                Location = tempLocation;
-                return true;
+                Console.WriteLine($"{Name} searched and found:");
+                foreach (var obj in foundObjects)
+                {
+                    var nObj = (INamed)obj;
+                    Console.WriteLine($"- {nObj.Name} located {Location.DistanceTo(obj.Location)*5} feet {Location.GetDirectionRelativeToThis(obj.Location)}.");
+                }
+                Console.ReadKey();
             }
-        }
-        public virtual void TakeTurn()
-        {}
-        // Major actions:
-        // public void DoAttack(string targetName)
-        // {
-        //     var target = (Entity)targetEntity;
-        //     Die.Result attackRollResult = AttackRoll();
-        //     bool crit = attackRollResult.NaturalResults[0] == 20;
-        //     if (crit) 
-        //     {
-        //         Console.WriteLine($"{Name} landed a critical hit on {target.Name}!");
-        //     }
-        //     else if (attackRollResult.TotalResult >= target.ArmorClass)
-        //     {
-        //         int damage = DamageRoll(crit);
-        //         Console.WriteLine($"{Name} inflicted {damage} points of damage on {target.Name}!");
-        //         target.ChangeHp(-1*damage);
-        //     }
-        //     else
-        //     {
-        //         Console.WriteLine($"{Name} missed {target.Name}!");
-        //     }
-        // }
-        public bool Search()
-        {
             return true;
         }
         public bool Hide()
@@ -218,7 +195,7 @@ namespace DungeonCrawler
             var adjacentObjects = Location.GetObjectsWithinRange(1);
             var adjacentItems = from o in adjacentObjects where o is Item select (Item)o;
             
-            var foundItem = adjacentItems.FirstOrDefault(i => i.Name == itemName);
+            var foundItem = adjacentItems.FirstOrDefault(i => i.Name.ToLower() == itemName);
             if (foundItem != null)
             {
                 if (AddItem(foundItem)) Location.Map.RemoveObject(foundItem);
@@ -226,23 +203,78 @@ namespace DungeonCrawler
             }
             else
             {
-                Console.WriteLine($"Item {itemName} was not found!");
+                Console.WriteLine($"{Name} could not find {itemName.IndefiniteArticle()} {itemName} to pick up.");
                 return false;
             }
         }
         public bool DropItem(string itemName)
         {
-            return true;
+            var foundItem = Items.FirstOrDefault(i => i.Name.ToLower() == itemName);
+            if (foundItem != null)
+            {
+                var adjacentObjects = Location.GetObjectsWithinRange(1).Where(o => o != this).ToArray();
+                if (adjacentObjects.Length < 8)
+                {
+                    if (RemoveItem(foundItem))
+                    {
+                        var openSpaces = Location.GetAdjacentCoordinates().Where(c => 
+                                         !adjacentObjects.Any(o => o.Location.X == c[0] && o.Location.Y == c[1]));
+                        int[] openSpace = openSpaces.RandomElement();
+                        foundItem.SetLocation(new MapPoint(openSpace[0], openSpace[1], Location.Map));
+                        return true;
+                    }
+                    return false;
+                }
+                else
+                {
+                    Console.WriteLine($"{Name} cannot drop the {itemName} because there are no adjacent spaces.");
+                    return false;
+                }
+            }
+            else
+            {
+                Console.WriteLine($"{Name} does not have currently have {itemName.IndefiniteArticle()} {itemName}.");
+                return false;
+            }
         }
         public bool UseItem(string itemName)
         {
             return true;
         }
         // Move actions:
-        public virtual void DoMove(string input)
+        public virtual bool Move(string moveInput)
         {
-            string[] inputArr = input.ToLower().Split(' ');;
-            Move(inputArr[0], int.Parse(inputArr[1]));
+            string[] moveInputArr = moveInput.ToLower().Split(' ');
+            string direction = moveInputArr[0];
+            int distanceFeet = int.Parse(moveInputArr[1]);
+            int distancePoints = distanceFeet / 5;
+
+            if (_movementRemaining - distanceFeet >= 0)
+            {
+                var tempLocation = Location.ShallowCopy;
+                tempLocation.Translate(direction, distancePoints);
+                var obstruction = Location.Map.Objects.FirstOrDefault(o => MapPoint.IsPointOnLineSegment(Location, tempLocation, o.Location) && o != this);
+                if (obstruction == null)
+                {
+                    Location = tempLocation;
+                    _movementRemaining -= distanceFeet;
+                }
+                else
+                {
+                    string output = $"{Name} cannot move {direction} {distanceFeet} feet because the way is obstructed";
+                    if (obstruction is INamed)
+                    {
+                        var nObstruction = (INamed)obstruction;
+                        output += $" by {nObstruction.Name}";
+                    }
+                    Console.WriteLine(output + ".");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"{Name} cannot move {distanceFeet} feet because it only has {_movementRemaining} feet of movement left.");
+            }
+            return _movementRemaining <= 0;
         }
     }
 }

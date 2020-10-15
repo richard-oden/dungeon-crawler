@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static DungeonCrawler.ExtensionsAndHelpers;
 
 namespace DungeonCrawler
 {
@@ -23,6 +24,7 @@ namespace DungeonCrawler
             bool turnOver = false;
             while (!turnOver)
             {
+                TakingTurn = true;
                 // Check if turn is over:
                 if (_movementRemaining <= 0) actionsRemaining.Remove("move");
                 if (actionsRemaining.Count == 0)
@@ -34,12 +36,12 @@ namespace DungeonCrawler
                 Location.Map.PrintMap();
 
                 // Prompt player:
-                Console.WriteLine($"\nEnter an action or type 'skip' to skip your turn. {Name} has a {actionsRemaining.FormatToString("and")} action remaining.\n");
+                string formattedMovement = _movementRemaining != 0 ? $"({_movementRemaining} ft) " : "";
+                Console.WriteLine($"\nEnter an action or type 'skip' to skip your turn. {Name} has a {actionsRemaining.FormatToString("and")} action {formattedMovement}remaining.\n");
                 foreach (var action in Actions) 
                 {
                     if (actionsRemaining.Contains(action.Type)) Console.WriteLine($"- {action.Command} {action.Description} ({action.Type})");
                 }
-                Console.WriteLine("- move [direction] [distance] - Move to an unoccupied space. Enter abbreviated direction and distance in feet. (e.g., NW 20)");
 
                 string input = Console.ReadLine().ToLower();
                 if (Actions.Any(a => a.Command == input.Split(' ')[0]))
@@ -48,17 +50,20 @@ namespace DungeonCrawler
                     IEntityAction inputAction = Actions.FirstOrDefault(a => a.Command == inputCommand);
                     if (actionsRemaining.Contains(inputAction.Type))
                     {
+                        bool actionExecuted = false;
                         if (inputAction is TargetedAction)
                         {
                             var inputTargetedAction = (TargetedAction)inputAction;
                             string inputTarget = string.Join(' ', input.Split(' ').Skip(1));
-                            if (inputTargetedAction.Execute(inputTarget)) actionsRemaining.Remove(inputAction.Type);
+                            actionExecuted = inputTargetedAction.Execute(inputTarget);
                         }
                         else if (inputAction is NonTargetedAction)
                         {
                             var inputNonTargetedAction = (NonTargetedAction)inputAction;
-                            if (inputNonTargetedAction.Execute()) actionsRemaining.Remove(inputAction.Type);
+                            actionExecuted = inputNonTargetedAction.Execute();
                         }
+                        PressAnyKeyToContinue();
+                        if (actionExecuted) actionsRemaining.Remove(inputAction.Type);
                     }
                     else
                     {
@@ -76,31 +81,7 @@ namespace DungeonCrawler
                 Console.Clear();
             }
             Console.Clear();
-        }
-
-        public override void DoMove(string input)
-        {
-            var inputArr = input.ToLower().Split(' ');
-            if (inputArr.Length == 2)
-            {
-                string direction = inputArr[0];
-                int distance = int.Parse(inputArr[1]);
-                if (_movementRemaining - distance >= 0)
-                {
-                    if (Move(direction, distance)) _movementRemaining -= distance;
-                }
-                else
-                {
-                    Console.WriteLine($"{Name} cannot move {distance} feet, because {Pronouns[0].ToLower()} only has {_movementRemaining} feet of movement left.");
-                    Console.ReadKey();
-                }
-            }
-            else
-            {
-                Console.WriteLine($"Input {input} is not valid.");
-                Console.ReadKey();
-            }
-            Console.Clear();
+            TakingTurn = false;
         }
     }
 }

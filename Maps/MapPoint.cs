@@ -53,9 +53,28 @@ namespace DungeonCrawler
             return DistanceTo(point) <= range;
         }
 
+        public static bool IsPointOnLineSegment(MapPoint start, MapPoint end, MapPoint middle)
+        {
+            return start.DistanceTo(middle) + middle.DistanceTo(end) == start.DistanceTo(end);
+        }
+
         public List<IMappable> GetObjectsWithinRange(int range)
         {
             return Map.Objects.Where(o => InRangeOf(o.Location, range)).ToList();
+        }
+
+        public List<int[]> GetAdjacentCoordinates()
+        {
+            var output = new List<int[]>();
+            for (int y = -1; y <= 1; y++)
+            {
+                for (int x = -1; x <= 1; x++)
+                {
+                    if (x != 0 && y != 0) output.Add(new int[]{X+x, Y+y});
+                    Console.WriteLine($"{X+x}, {Y+y}");
+                }
+            }
+            return output;
         }
 
         public void Translate(string direction, int distance)
@@ -69,31 +88,41 @@ namespace DungeonCrawler
                     Y += distance;
                     break;
                 case "e":
-                    X -= distance;
+                    X += distance;
                     break;
                 case "w":
-                    X += distance;
+                    X -= distance;
                     break;
                 case "ne":
                     Y -= distance;
-                    X -= distance;
+                    X += distance;
                     break;
                 case "nw":
                     Y -= distance;
-                    X += distance;
+                    X -= distance;
                     break;
                 case "se":
                     Y += distance;
-                    X -= distance;
+                    X += distance;
                     break;
                 case "sw":
                     Y += distance;
-                    X += distance;
+                    X -= distance;
                     break;
                 default:
                     Console.WriteLine($"'{direction}' is not a valid direction. Should be abbreviated as follows: 'north' = 'n', 'southeast' = 'se', etc.");
                     break;
             }
+        }
+    
+        public string GetDirectionRelativeToThis(MapPoint that)
+        {
+            string output = "";
+            if (that.Y < this.Y) output += "N";
+            else if (that.Y > this.Y) output += "S";
+            if (that.X < this.X) output += "E";
+            else if (that.X > this.X) output += "W";
+            return output;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Linq;
 using static DungeonCrawler.Symbols;
 
@@ -10,6 +11,7 @@ namespace DungeonCrawler
         static void Main(string[] args)
         {
             Console.Clear();
+            Console.OutputEncoding = Encoding.UTF8;
             var map1 = new Map(10, 10);
             var testSword = new Sword
             (
@@ -61,16 +63,16 @@ namespace DungeonCrawler
             );
             var player2 = new Player
             (
-                name: "Eldfar", level: 10, gender: 'f',
-                race: new Elf("DEX", "WIS"), caste: new Cleric(),
-                abilityScoreValues: new []{16, 14, 10, 10, 18, 8},
-                location: new MapPoint(6, 6, map1)
+                name: "Eldfar", level: 10, gender: 'm',
+                race: new Elf("INT", "WIS"), caste: new Wizard(),
+                abilityScoreValues: new []{8, 10, 10, 18, 12, 10},
+                location: new MapPoint(4, 6, map1)
             );
             var player3 = new Player
             (
-                name: "Stinthad", level: 10, gender: 'f',
-                race: new Elf("DEX", "WIS"), caste: new Cleric(),
-                abilityScoreValues: new []{16, 14, 10, 10, 18, 8},
+                name: "Stinthad", level: 10, gender: 'm',
+                race: new Dwarf("STR", "CON"), caste: new Fighter(),
+                abilityScoreValues: new []{18, 12, 16, 10, 18, 8},
                 location: new MapPoint(6, 7, map1)
             );
             map1.AddObjects
@@ -114,6 +116,8 @@ namespace DungeonCrawler
                     new Wall(new MapPoint(9, 7, map1)),
                     new Wall(new MapPoint(9, 8, map1)),
                     player1,
+                    player2,
+                    player3,
                     testSword       
                 }
             );
@@ -126,7 +130,7 @@ namespace DungeonCrawler
             //     player1.Move(direction, 5);
             //     Console.Clear();
             // }
-            var combat1 = new Combat(new List<Entity> {player1});
+            var combat1 = new Combat(new List<Entity> {player1, player2, player3});
             combat1.StartCombat();
         }
     }

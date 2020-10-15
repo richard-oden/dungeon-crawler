@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace DungeonCrawler
 {
-    public class Item : IMappable
+    public class Item : IMappable, INamed
     {
         public string Name {get; protected set;}
         public double Value {get; protected set;}
