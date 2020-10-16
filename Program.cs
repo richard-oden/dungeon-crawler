@@ -26,11 +26,11 @@ namespace DungeonCrawler
             //     abilityMods: new Dictionary<string, int> {{"CON", 2}, {"WIS", -2}}
             // );
 
-            // var testTome = new Tome
-            // (
-            //     "Fire Tome", 160, 24, false,
-            //     damageBonus: 4, damageDie: Dice.D20, damageType: "fire"
-            // );
+            var testTome = new Tome
+            (
+                "Fire Tome", 160, 24, damageType: "fire", damageBonus: 2
+            );
+            testTome.SetLocation(new MapPoint(2, 3, map1));
 
             var sentientNpc1 = new SentientNpc
             (
@@ -118,7 +118,8 @@ namespace DungeonCrawler
                     player1,
                     player2,
                     player3,
-                    testSword       
+                    testSword,
+                    testTome     
                 }
             );
             // Movement input loop:

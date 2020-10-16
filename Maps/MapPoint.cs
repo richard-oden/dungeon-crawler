@@ -71,7 +71,6 @@ namespace DungeonCrawler
                 for (int x = -1; x <= 1; x++)
                 {
                     if (x != 0 && y != 0) output.Add(new int[]{X+x, Y+y});
-                    Console.WriteLine($"{X+x}, {Y+y}");
                 }
             }
             return output;

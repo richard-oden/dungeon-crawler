@@ -27,8 +27,8 @@ namespace DungeonCrawler
         protected Die _hitDie;
         protected int _hp;
         protected Stat _currentHp;
-        public int CurrentInitiative {get; protected set;}
         public bool IsDead {get; protected set;} = false;
+        public int CurrentInitiative {get; protected set;}
         public int MovementSpeedFeet => 30 + (getModifier("DEX") * 5);
         protected int _movementRemaining;
         protected double _maxCarryWeight => AbilityScores.TotalScores["STR"] * 15;
@@ -43,6 +43,7 @@ namespace DungeonCrawler
         }
         public List<Item> Items {get; protected set;} = new List<Item>();
         public MapPoint Location {get; protected set;}
+        protected virtual int _attackRangeFeet {get; set;} = 5;
         public virtual char Symbol {get; protected set;} = Symbols.Friendly;
         public List<string> Statuses {get; protected set;}
         protected List<IEntityAction> Actions = new List<IEntityAction>();
@@ -68,7 +69,8 @@ namespace DungeonCrawler
             Location = location;
 
             // Actions.Add(new TargetedAction("basic attack", "[target name] - Direct a basic attack at a creature in range", "major", Attack));
-            Actions.Add(new NonTargetedAction("search", "- Search surroundings for items and creatures", "major", Search));
+            Actions.Add(new TargetedAction("attack", $"[target name] - Attack a target creature within {_attackRangeFeet} feet.", "major", Attack));
+            Actions.Add(new NonTargetedAction("search", "- Search surroundings for items and creatures.", "major", Search));
             Actions.Add(new NonTargetedAction("hide", "- Attempt to hide from enemies", "major", Hide));
             Actions.Add(new TargetedAction("take", "[item name] - Pick up an item within 5 feet.", "minor", PickUpItem));
             Actions.Add(new TargetedAction("drop", "[item name] - Drop an item in inventory.", "minor", DropItem));
@@ -165,6 +167,7 @@ namespace DungeonCrawler
         }
         public virtual void TakeTurn()
         {}
+        // Major actions:
         public bool Search()
         {
             int rangeFeet = 20 + getModifier("WIS") * 5;
@@ -181,9 +184,44 @@ namespace DungeonCrawler
                     var nObj = (INamed)obj;
                     Console.WriteLine($"- {nObj.Name} located {Location.DistanceTo(obj.Location)*5} feet {Location.GetDirectionRelativeToThis(obj.Location)}.");
                 }
-                Console.ReadKey();
             }
             return true;
+        }
+
+        public bool Attack(string targetName)
+        {
+            var entitiesOnMap = from o in Location.Map.Objects where o is Entity select (Entity)o;
+            var target = entitiesOnMap.FirstOrDefault(e => e.Name.ToLower() == targetName);
+            if (target != null)
+            {
+                if (Location.InRangeOf(target.Location, _attackRangeFeet/5))
+                {
+                    Console.WriteLine($"{Name} is attacking {target.Name}...");
+                    var attackResult = AttackRoll();
+                    bool crit = attackResult.NaturalResults[0] == 20;
+                    if (attackResult.TotalResult >= target.ArmorClass || crit)
+                    {
+                        Console.WriteLine(crit ? "It's a critical hit!" : "It's a hit!");
+                        var damageResult = DamageRoll(crit);
+                        Console.WriteLine($"{target.Name} takes {damageResult} points of damage!");
+                        target.ChangeHp(damageResult*-1);
+                    }
+                    else
+                    {
+                        Console.WriteLine("It's a miss!");
+                    }
+                    return true;
+                }
+                else
+                {
+                    Console.WriteLine($"{target.Name} is out of range of {Name}'s attack.");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"{targetName} could not be found on the map.");
+            }
+            return false;
         }
         public bool Hide()
         {
@@ -198,14 +236,18 @@ namespace DungeonCrawler
             var foundItem = adjacentItems.FirstOrDefault(i => i.Name.ToLower() == itemName);
             if (foundItem != null)
             {
-                if (AddItem(foundItem)) Location.Map.RemoveObject(foundItem);
-                return true;
+                if (AddItem(foundItem)) 
+                {
+                    Location.Map.RemoveObject(foundItem);
+                    Console.WriteLine($"{Name} picked up the {itemName}.");
+                    return true;
+                }
             }
             else
             {
                 Console.WriteLine($"{Name} could not find {itemName.IndefiniteArticle()} {itemName} to pick up.");
-                return false;
             }
+            return false;
         }
         public bool DropItem(string itemName)
         {
@@ -221,21 +263,21 @@ namespace DungeonCrawler
                                          !adjacentObjects.Any(o => o.Location.X == c[0] && o.Location.Y == c[1]));
                         int[] openSpace = openSpaces.RandomElement();
                         foundItem.SetLocation(new MapPoint(openSpace[0], openSpace[1], Location.Map));
+                        Location.Map.AddObject(foundItem);
+                        Console.WriteLine($"{Name} dropped the {itemName}.");
                         return true;
                     }
-                    return false;
                 }
                 else
                 {
                     Console.WriteLine($"{Name} cannot drop the {itemName} because there are no adjacent spaces.");
-                    return false;
                 }
             }
             else
             {
-                Console.WriteLine($"{Name} does not have currently have {itemName.IndefiniteArticle()} {itemName}.");
-                return false;
+                Console.WriteLine($"{Name} does not have currently have {itemName.IndefiniteArticle().ToLower()} {itemName}.");
             }
+            return false;
         }
         public bool UseItem(string itemName)
         {
@@ -244,35 +286,55 @@ namespace DungeonCrawler
         // Move actions:
         public virtual bool Move(string moveInput)
         {
-            string[] moveInputArr = moveInput.ToLower().Split(' ');
-            string direction = moveInputArr[0];
-            int distanceFeet = int.Parse(moveInputArr[1]);
-            int distancePoints = distanceFeet / 5;
-
-            if (_movementRemaining - distanceFeet >= 0)
+            try
             {
-                var tempLocation = Location.ShallowCopy;
-                tempLocation.Translate(direction, distancePoints);
-                var obstruction = Location.Map.Objects.FirstOrDefault(o => MapPoint.IsPointOnLineSegment(Location, tempLocation, o.Location) && o != this);
-                if (obstruction == null)
+                string[] moveInputArr = moveInput.ToLower().Split(' ');
+                string direction = moveInputArr[0];
+                int distanceFeet = int.Parse(moveInputArr[1]);
+                int distancePoints = distanceFeet / 5;
+                if (distanceFeet > 0)
                 {
-                    Location = tempLocation;
-                    _movementRemaining -= distanceFeet;
+                    if (_movementRemaining - distanceFeet >= 0)
+                    {
+                        var tempLocation = Location.ShallowCopy;
+                        tempLocation.Translate(direction, distancePoints);
+                        if (Location.Map.OnMap(tempLocation))
+                        {
+                            var obstruction = Location.Map.Objects.FirstOrDefault(o => MapPoint.IsPointOnLineSegment(Location, tempLocation, o.Location) && o != this);
+                            if (obstruction == null)
+                            {
+                                Location = tempLocation;
+                                _movementRemaining -= distanceFeet;
+                            }
+                            else
+                            {
+                                string output = $"{Name} cannot move {direction.ToUpper()} {distanceFeet} feet because the way is obstructed";
+                                if (obstruction is INamed)
+                                {
+                                    var nObstruction = (INamed)obstruction;
+                                    output += $" by {nObstruction.Name}";
+                                }
+                                Console.WriteLine(output + ".");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"{Name} cannot move outside the map.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{Name} cannot move {distanceFeet} feet because it only has {_movementRemaining} feet of movement left.");
+                    }
                 }
                 else
                 {
-                    string output = $"{Name} cannot move {direction} {distanceFeet} feet because the way is obstructed";
-                    if (obstruction is INamed)
-                    {
-                        var nObstruction = (INamed)obstruction;
-                        output += $" by {nObstruction.Name}";
-                    }
-                    Console.WriteLine(output + ".");
+                    Console.WriteLine("Distance must be greater than 0 feet.");
                 }
             }
-            else
+            catch (Exception)
             {
-                Console.WriteLine($"{Name} cannot move {distanceFeet} feet because it only has {_movementRemaining} feet of movement left.");
+                Console.WriteLine($"Target '{moveInput}' is not valid.");
             }
             return _movementRemaining <= 0;
         }
