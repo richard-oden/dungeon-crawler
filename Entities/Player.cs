@@ -24,6 +24,7 @@ namespace DungeonCrawler
             bool turnOver = false;
             while (!turnOver)
             {
+                MaintainStatusEffects();
                 TakingTurn = true;
                 // Check if turn is over:
                 if (_movementRemaining <= 0) actionsRemaining.Remove("move");
@@ -42,6 +43,7 @@ namespace DungeonCrawler
                 {
                     if (actionsRemaining.Contains(action.Type)) Console.WriteLine($"- {action.Command} {action.Description} ({action.Type})");
                 }
+                Console.WriteLine($"\nEnter 'stats' at any time to view {Name}'s stats.\n");
 
                 string input = Console.ReadLine().ToLower();
                 if (Actions.Any(a => a.Command == input.Split(' ')[0]))
@@ -69,6 +71,11 @@ namespace DungeonCrawler
                     {
                         Console.WriteLine($"{Name} does not have a {inputAction.Type} action remaining.");
                     }
+                }
+                else if (input == "stats")
+                {
+                    Console.WriteLine(GetAllStats());
+                    PressAnyKeyToContinue();
                 }
                 else if (input == "skip")
                 {

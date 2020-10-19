@@ -1,12 +1,12 @@
 using System;
-using System.Runtime;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using static DungeonCrawler.Dice;
 
 namespace DungeonCrawler
 {
-    public abstract class Entity : IMappable, INamed
+    public abstract class Entity : IMappable, INamed, IDescribable
     {
         public string Name {get; protected set;}
         public char Gender {get; protected set;}
@@ -25,8 +25,8 @@ namespace DungeonCrawler
         public AbilityScores AbilityScores {get; protected set;}
         public virtual int ArmorClass => 10 + (AbilityScores.TotalScores["CON"] > AbilityScores.TotalScores["DEX"] ? getModifier("CON") : getModifier("DEX"));
         protected Die _hitDie;
-        protected int _hp;
-        protected Stat _currentHp;
+        protected int _hp {get; set;}
+        protected Stat _currentHp {get; set;}
         public bool IsDead {get; protected set;} = false;
         public int CurrentInitiative {get; protected set;}
         public int MovementSpeedFeet => 30 + (getModifier("DEX") * 5);
@@ -45,7 +45,8 @@ namespace DungeonCrawler
         public MapPoint Location {get; protected set;}
         protected virtual int _attackRangeFeet {get; set;} = 5;
         public virtual char Symbol {get; protected set;} = Symbols.Friendly;
-        public List<string> Statuses {get; protected set;}
+        public virtual string Description {get; protected set;}
+        public List<StatusEffect> StatusEffects {get; protected set;} = new List<StatusEffect>();
         protected List<IEntityAction> Actions = new List<IEntityAction>();
         public bool TakingTurn {get; protected set;}
 
@@ -68,7 +69,6 @@ namespace DungeonCrawler
 
             Location = location;
 
-            // Actions.Add(new TargetedAction("basic attack", "[target name] - Direct a basic attack at a creature in range", "major", Attack));
             Actions.Add(new TargetedAction("attack", $"[target name] - Attack a target creature within {_attackRangeFeet} feet.", "major", Attack));
             Actions.Add(new NonTargetedAction("search", "- Search surroundings for items and creatures.", "major", Search));
             Actions.Add(new NonTargetedAction("hide", "- Attempt to hide from enemies", "major", Hide));
@@ -76,6 +76,21 @@ namespace DungeonCrawler
             Actions.Add(new TargetedAction("drop", "[item name] - Drop an item in inventory.", "minor", DropItem));
             Actions.Add(new TargetedAction("use", "[item name] - Use an item in inventory.", "minor", UseItem));
             Actions.Add(new TargetedAction("move", "[direction] [distance] - Move to an unoccupied space. Enter abbreviated direction and distance in feet. (e.g., NW 20)", "move", Move));
+        }
+
+        public virtual string GetDescription()
+        {
+            return $"{Name} lvl {Level.Value} has a hit die of d{_hitDie.NumSides.Value}, and total HP of {_hp}.";
+        }
+
+        public virtual string GetAllStats()
+        {
+            string output = $"{Name}, lvl {Level.Value} {char.ToUpper(Gender)}\n";
+            output += $"HP: {_currentHp.Value} / {_hp} AC: {ArmorClass}\n";
+            output += $"{AbilityScores.GetShortDescription()}\n";
+            output += $"Inventory: {ListItems()}";
+            output += $"Status Effects: {ListStatusEffects()}";
+            return output;
         }
 
         protected int getModifier(string abilityScore)
@@ -95,10 +110,21 @@ namespace DungeonCrawler
                 throw new InvalidAbilityException($"Ability '{abil}' in entity '{this.Name}' is not valid!");
             }
         }
-
-        public virtual string GetDescription()
+        
+        public void InitiativeRoll(int mod = 0)
         {
-            return $"{Name} lvl {Level.Value} has a hit die of d{_hitDie.NumSides.Value}, and total HP of {_hp}.";
+            CurrentInitiative = D20.Roll(1, (getModifier("DEX") + mod));
+        }
+        
+        public virtual Die.Result AttackRoll()
+        {
+            return Dice.D20.RollGetResult(1, getModifier("DEX"), true);
+        }
+
+        public virtual int DamageRoll(bool crit)
+        {
+            int multiplier = crit ? 2 : 1;
+            return Dice.D4.Roll(multiplier, getModifier("STR"), true);
         }
 
         public void ChangeHp(int amount)
@@ -111,6 +137,19 @@ namespace DungeonCrawler
             }
         }
         
+        public void SetLocation(MapPoint location)
+        {   
+            Location = location;
+        }
+        
+        public virtual void TakeTurn()
+        {
+            MaintainStatusEffects();
+        }
+
+        // =======================================================================================
+        // ITEM RELATED:
+        // =======================================================================================
         public virtual bool AddItem(Item newItem)
         {
             if (_currentWeightCarried + newItem.Weight <= _maxCarryWeight)
@@ -141,33 +180,75 @@ namespace DungeonCrawler
         
         public string ListItems()
         {
-            var itemNames = Items.Select(i => i.Name);
-            return itemNames.FormatToString("and");
+            string list = Items.Select(i => i.Name).FormatToString("and");
+            return String.IsNullOrEmpty(list) ? "Empty" : list;
         }
         
-        public void InitiativeRoll(int mod = 0)
+        // =======================================================================================
+        // STATUS EFFECT RELATED:
+        // =======================================================================================
+        public void ApplyStatusEffect(StatusEffect newStatusEffect)
         {
-            CurrentInitiative = D20.Roll(1, (getModifier("DEX") + mod));
+            /// TODO: Figure out how to access properties with private setter
+            PropertyInfo piTargetProp = typeof(Entity).GetProperty("CurrentInitiative");//, BindingFlags.Public | BindingFlags.Instance);
+            // piTargetProp.DeclaringType.GetProperty("_currentHp");
+            Console.WriteLine(piTargetProp == null);
+            if (piTargetProp.PropertyType == typeof(int))
+            {
+                piTargetProp.SetValue(this, (int)piTargetProp.GetValue(this, null) + newStatusEffect.ValueChange);//, BindingFlags.NonPublic | BindingFlags.Instance, null, null, null);
+            }
+            else if (piTargetProp.PropertyType == typeof(Stat))
+            {
+                MethodInfo miTargetProp = typeof(Entity).GetMethod("ChangeValue");
+                miTargetProp.Invoke(miTargetProp, new object[] {newStatusEffect.ValueChange});
+            }
+            else
+            {
+                throw new InvalidEntityPropertyException($"{newStatusEffect.TargetProp} is not a valid property for {Name}.");
+            }
+            Console.WriteLine($"{Name} is {newStatusEffect.Name}. {Pronouns[2]} {newStatusEffect.TargetProp} is {(newStatusEffect.ValueChange >= 0 ? "increased" : "decreased")} by {Math.Abs(newStatusEffect.ValueChange)}.");
+        }
+
+        public void UnapplyStatusEffect(StatusEffect currentStatusEffect)
+        {
+            var reversedStatusEffect = new StatusEffect
+            (
+                "recovering from " + currentStatusEffect.Name, 
+                (currentStatusEffect.HasCoolDown ? currentStatusEffect.Duration : 0), 
+                currentStatusEffect.TargetProp, 
+                currentStatusEffect.ValueChange*-1, 
+                currentStatusEffect.Recurring,
+                false
+            );
+            ApplyStatusEffect(reversedStatusEffect);
+        }
+
+        public void MaintainStatusEffects()
+        {
+            foreach (var statusEffect in StatusEffects)
+            {
+                statusEffect.DecrementDuration();
+                if (statusEffect.Recurring == true) ApplyStatusEffect(statusEffect);
+                if (statusEffect.Duration == 0) 
+                {
+                    UnapplyStatusEffect(statusEffect);
+                    Console.WriteLine($"{Name} is no longer {statusEffect.Name}.");
+                }
+            }
+            StatusEffects.RemoveAll(se => se.Duration == 0);
         }
         
-        public virtual Die.Result AttackRoll()
+        public string ListStatusEffects()
         {
-            return Dice.D20.RollGetResult(1, getModifier("DEX"), true);
+            string list = StatusEffects.Select(sE => sE.Name).FormatToString("and");
+            return String.IsNullOrEmpty(list) ? "None" : list;
         }
-
-        public virtual int DamageRoll(bool crit)
-        {
-            int multiplier = crit ? 2 : 1;
-            return Dice.D4.Roll(multiplier, getModifier("STR"), true);
-        }
-
-        public void SetLocation(MapPoint location)
-        {   
-            Location = location;
-        }
-        public virtual void TakeTurn()
-        {}
-        // Major actions:
+        
+        // =======================================================================================
+        // ACTIONS:
+        // =======================================================================================
+        
+        // Major actions:   
         public bool Search()
         {
             int rangeFeet = 20 + getModifier("WIS") * 5;
@@ -223,10 +304,12 @@ namespace DungeonCrawler
             }
             return false;
         }
+        
         public bool Hide()
         {
             return true;
         }
+        
         // Minor actions:
         public bool PickUpItem(string itemName)
         {
@@ -245,10 +328,11 @@ namespace DungeonCrawler
             }
             else
             {
-                Console.WriteLine($"{Name} could not find {itemName.IndefiniteArticle()} {itemName} to pick up.");
+                Console.WriteLine($"{Name} could not find {itemName.IndefiniteArticle().ToLower()} {itemName} to pick up.");
             }
             return false;
         }
+        
         public bool DropItem(string itemName)
         {
             var foundItem = Items.FirstOrDefault(i => i.Name.ToLower() == itemName);
@@ -279,10 +363,35 @@ namespace DungeonCrawler
             }
             return false;
         }
+        
         public bool UseItem(string itemName)
         {
-            return true;
+            var foundItem = Items.FirstOrDefault(i => i.Name.ToLower() == itemName);
+            if (foundItem != null)
+            {
+                if (foundItem is Consumable)
+                {
+                    var foundConsumable = (Consumable)foundItem;
+                    Console.WriteLine($"{Name} used the {foundConsumable.Name}.");
+                    foreach (var statusEffect in foundConsumable.StatusEffects)
+                    {
+                        StatusEffects.Add(statusEffect);
+                        ApplyStatusEffect(statusEffect);
+                    }
+                    return true;
+                }
+                else
+                {
+                    Console.WriteLine($"{foundItem.Name} is not consumable.");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"{Name} does not have currently have {itemName.IndefiniteArticle().ToLower()} {itemName}.");
+            }
+            return false;
         }
+        
         // Move actions:
         public virtual bool Move(string moveInput)
         {

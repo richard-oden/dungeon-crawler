@@ -18,6 +18,15 @@ namespace DungeonCrawler
         {}
     }
 
+    class InvalidEntityPropertyException : System.Exception
+    {
+        public InvalidEntityPropertyException()
+        {}
+        
+        public InvalidEntityPropertyException(string message) : base(message)
+        {}
+    }
+
     class OutOfMapBoundsException : System.Exception
     {
         public OutOfMapBoundsException()
@@ -27,12 +36,12 @@ namespace DungeonCrawler
         {}
     }
     
-    class DuplicationLocationException : System.Exception
+    class DuplicateLocationException : System.Exception
     {
-        public DuplicationLocationException()
+        public DuplicateLocationException()
         {}
         
-        public DuplicationLocationException(string message) : base(message)
+        public DuplicateLocationException(string message) : base(message)
         {}
     }
 }

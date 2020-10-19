@@ -32,6 +32,14 @@ namespace DungeonCrawler
             );
             testTome.SetLocation(new MapPoint(2, 3, map1));
 
+            var healthPotion1 = new Consumable
+            (
+                "Minor Health Potion", 30, 3, new List<StatusEffect>()
+                {
+                    new StatusEffect("healing", 0, "_currentHp", Dice.D4.Roll(3, true), false, false)
+                }
+            );
+
             var sentientNpc1 = new SentientNpc
             (
                 name: "Theodas", level: 10, gender: 'm',
@@ -122,15 +130,16 @@ namespace DungeonCrawler
                     testTome     
                 }
             );
-            // Movement input loop:
-            // while (true)
-            // {
-            //     map1.PrintMap();
-            //     string direction = Console.ReadLine();
-            //     if (direction == "q") break;
-            //     player1.Move(direction, 5);
-            //     Console.Clear();
-            // }
+
+            foreach (var obj in map1.Objects) 
+            {
+                if (obj is Entity)
+                {
+                    var entity = (Entity)obj;
+                    entity.AddItem(healthPotion1);
+                }
+            }
+
             var combat1 = new Combat(new List<Entity> {player1, player2, player3});
             combat1.StartCombat();
         }

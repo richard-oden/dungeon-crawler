@@ -47,12 +47,13 @@ namespace DungeonCrawler
             return $"{Name} is a level {Level.Value} {Race.Name} {Caste.Name}. {Pronouns[2]} hit die is a d{_hitDie.NumSides.Value}, and {Pronouns[2].ToLower()} total HP is {_hp}.";
         }
 
-        public string GetAllStats()
+        public override string GetAllStats()
         {
             string output = $"{Name}, lvl {Level.Value} {char.ToUpper(Gender)} {Race.Name} {Caste.Name}\n";
             output += $"HP: {_currentHp.Value} / {_hp} AC: {ArmorClass}\n";
             output += $"{AbilityScores.GetShortDescription()}\n";
-            output += $"Inventory: {(String.IsNullOrEmpty(ListItems()) ? "Empty" : ListItems())}";
+            output += $"Inventory: {ListItems()}\n";
+            output += $"Status Effects: {ListStatusEffects()}";
             return output;
         }
 

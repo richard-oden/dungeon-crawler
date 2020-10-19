@@ -39,7 +39,7 @@ namespace DungeonCrawler
             {
                 string duplicateLocations = "";
                 foreach (var o in objectDuplicates) duplicateLocations += $" ({o.X},{o.Y})";
-                throw new DuplicationLocationException($"Duplicate locations found at{duplicateLocations}.");
+                throw new DuplicateLocationException($"Duplicate locations found at{duplicateLocations}.");
             }
         }
 
