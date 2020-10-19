@@ -53,7 +53,8 @@ namespace DungeonCrawler
             output += $"HP: {_currentHp.Value} / {_hp} AC: {ArmorClass}\n";
             output += $"{AbilityScores.GetShortDescription()}\n";
             output += $"Inventory: {ListItems()}\n";
-            output += $"Status Effects: {ListStatusEffects()}";
+            output += $"Status Effects: {ListStatusEffects()}\n";
+            if (HiddenDc > 0) output += $"Currently hidden with DC of {HiddenDc}.\n";
             return output;
         }
 

@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using static DungeonCrawler.Dice;
+using static DungeonCrawler.ExtensionsAndHelpers;
 
 namespace DungeonCrawler
 {
@@ -29,7 +30,7 @@ namespace DungeonCrawler
         protected Stat _currentHp {get; set;}
         public bool IsDead {get; protected set;} = false;
         public int CurrentInitiative {get; protected set;}
-        public int MovementSpeedFeet => 30 + (getModifier("DEX") * 5);
+        public int MovementSpeedFeet => 20 + (getModifier("DEX") * 5);
         protected int _movementRemaining;
         protected double _maxCarryWeight => AbilityScores.TotalScores["STR"] * 15;
         protected double _currentWeightCarried
@@ -47,6 +48,8 @@ namespace DungeonCrawler
         public virtual char Symbol {get; protected set;} = Symbols.Friendly;
         public virtual string Description {get; protected set;}
         public List<StatusEffect> StatusEffects {get; protected set;} = new List<StatusEffect>();
+        public int HiddenDc {get; protected set;} = 0;
+        public int PassivePerception {get; protected set;}
         protected List<IEntityAction> Actions = new List<IEntityAction>();
         public bool TakingTurn {get; protected set;}
 
@@ -66,6 +69,8 @@ namespace DungeonCrawler
                 _hp += _hitDie.Roll(1, getModifier("CON"));
             }
             _currentHp = new Stat("HP", 0, _hp, _hp);
+
+            PassivePerception = AbilityScores.TotalScores["WIS"];
 
             Location = location;
 
@@ -145,6 +150,15 @@ namespace DungeonCrawler
         public virtual void TakeTurn()
         {
             MaintainStatusEffects();
+        }
+
+        public void RevealIfHidden()
+        {
+            if (HiddenDc > 0)
+            {
+                Console.WriteLine($"{Name} was spotted and is no longer hidden!");
+                HiddenDc = 0;
+            }
         }
 
         // =======================================================================================
@@ -251,9 +265,16 @@ namespace DungeonCrawler
         // Major actions:   
         public bool Search()
         {
-            int rangeFeet = 20 + getModifier("WIS") * 5;
-            var foundObjects = Location.GetObjectsWithinRange(rangeFeet / 5).Where(o => o is INamed && o != this).ToArray();
-            if (foundObjects.Length == 0)
+            Console.WriteLine($"{Name} is searching (WIS check)...");
+            int perceptionRoll = D20.Roll(1, getModifier("WIS"), true);
+            int perceptionCheck = perceptionRoll >= PassivePerception ? perceptionRoll : PassivePerception;
+            int searchRangeFeet = (perceptionCheck - 8) * 5;
+            Console.WriteLine($"Search range is {searchRangeFeet} feet.");
+            PressAnyKeyToContinue();
+
+            var foundObjects = Location.GetObjectsWithinRange(searchRangeFeet / 5).Where(o => o is INamed && o != this).ToList();
+            foundObjects.RemoveAll(o => o is Entity && (o as Entity).HiddenDc > perceptionCheck);
+            if (foundObjects.Count == 0)
             {
                 Console.WriteLine($"{Name} searched but couldn't find anything!");
             }
@@ -263,6 +284,7 @@ namespace DungeonCrawler
                 foreach (var obj in foundObjects)
                 {
                     var nObj = (INamed)obj;
+                    if (nObj is Entity) (nObj as Entity).RevealIfHidden();
                     Console.WriteLine($"- {nObj.Name} located {Location.DistanceTo(obj.Location)*5} feet {Location.GetDirectionRelativeToThis(obj.Location)}.");
                 }
             }
@@ -277,21 +299,29 @@ namespace DungeonCrawler
             {
                 if (Location.InRangeOf(target.Location, _attackRangeFeet/5))
                 {
-                    Console.WriteLine($"{Name} is attacking {target.Name}...");
-                    var attackResult = AttackRoll();
-                    bool crit = attackResult.NaturalResults[0] == 20;
-                    if (attackResult.TotalResult >= target.ArmorClass || crit)
+                    if (target.HiddenDc <= PassivePerception)
                     {
-                        Console.WriteLine(crit ? "It's a critical hit!" : "It's a hit!");
-                        var damageResult = DamageRoll(crit);
-                        Console.WriteLine($"{target.Name} takes {damageResult} points of damage!");
-                        target.ChangeHp(damageResult*-1);
+                        target.RevealIfHidden();
+                        Console.WriteLine($"{Name} is attacking {target.Name}...");
+                        var attackResult = AttackRoll();
+                        bool crit = attackResult.NaturalResults[0] == 20;
+                        if (attackResult.TotalResult >= target.ArmorClass || crit)
+                        {
+                            Console.WriteLine(crit ? "It's a critical hit!" : "It's a hit!");
+                            var damageResult = DamageRoll(crit);
+                            Console.WriteLine($"{target.Name} takes {damageResult} points of damage!");
+                            target.ChangeHp(damageResult*-1);
+                        }
+                        else
+                        {
+                            Console.WriteLine("It's a miss!");
+                        }
+                        return true;
                     }
                     else
                     {
-                        Console.WriteLine("It's a miss!");
+                        Console.WriteLine($"{Name} cannot find {target.Name} because they are hidden!");
                     }
-                    return true;
                 }
                 else
                 {
@@ -307,6 +337,8 @@ namespace DungeonCrawler
         
         public bool Hide()
         {
+            Console.WriteLine($"{Name} is attempting to hide..");
+            HiddenDc = D20.Roll(1, getModifier("DEX"), true);
             return true;
         }
         
@@ -378,6 +410,7 @@ namespace DungeonCrawler
                         StatusEffects.Add(statusEffect);
                         ApplyStatusEffect(statusEffect);
                     }
+                    Items.Remove(foundItem);
                     return true;
                 }
                 else

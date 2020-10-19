@@ -38,7 +38,7 @@ namespace DungeonCrawler
 
                 // Prompt player:
                 string formattedMovement = _movementRemaining != 0 ? $"({_movementRemaining} ft) " : "";
-                Console.WriteLine($"\nEnter an action or type 'skip' to skip your turn. {Name} has a {actionsRemaining.FormatToString("and")} action {formattedMovement}remaining.\n");
+                Console.WriteLine($"\nEnter an action or type 'pass' to pass your turn. {Name} has a {actionsRemaining.FormatToString("and")} action {formattedMovement}remaining.\n");
                 foreach (var action in Actions) 
                 {
                     if (actionsRemaining.Contains(action.Type)) Console.WriteLine($"- {action.Command} {action.Description} ({action.Type})");
@@ -77,7 +77,7 @@ namespace DungeonCrawler
                     Console.WriteLine(GetAllStats());
                     PressAnyKeyToContinue();
                 }
-                else if (input == "skip")
+                else if (input == "pass")
                 {
                     turnOver = true;
                 }
