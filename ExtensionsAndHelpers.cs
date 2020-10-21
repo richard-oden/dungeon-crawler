@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace DungeonCrawler
 {
@@ -27,6 +28,13 @@ namespace DungeonCrawler
             return output;
         }
 
+        public static string FromTitleOrCamelCase(this string source)
+        {
+            string output = Regex.Replace(source, @"([A-Z])", " " + "$1").ToLower();
+            output = Regex.Replace(output, @"_", "");
+            return output;
+        }
+
         public static string IndefiniteArticle(this string noun)
         {
             return "AEIOUaeiou".IndexOf(noun[0]) >= 0 ? "An" : "A";
@@ -36,6 +44,7 @@ namespace DungeonCrawler
         {
             Console.Write("Press any key to continue... ");
             Console.ReadKey();
+            Console.WriteLine();
         }
     }
 }

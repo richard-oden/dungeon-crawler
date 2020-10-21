@@ -22,7 +22,7 @@ namespace DungeonCrawler
             }
         }
         public Stat Level {get; protected set;} = new Stat("Level", 1, 100);
-        protected int _experience;
+        protected int _experience {get; set;}
         public AbilityScores AbilityScores {get; protected set;}
         public virtual int ArmorClass => 10 + (AbilityScores.TotalScores["CON"] > AbilityScores.TotalScores["DEX"] ? getModifier("CON") : getModifier("DEX"));
         protected Die _hitDie;
@@ -204,23 +204,21 @@ namespace DungeonCrawler
         public void ApplyStatusEffect(StatusEffect newStatusEffect)
         {
             /// TODO: Figure out how to access properties with private setter
-            PropertyInfo piTargetProp = typeof(Entity).GetProperty("CurrentInitiative");//, BindingFlags.Public | BindingFlags.Instance);
-            // piTargetProp.DeclaringType.GetProperty("_currentHp");
-            Console.WriteLine(piTargetProp == null);
+            PropertyInfo piTargetProp = this.GetType().GetProperty(newStatusEffect.TargetProp, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             if (piTargetProp.PropertyType == typeof(int))
             {
-                piTargetProp.SetValue(this, (int)piTargetProp.GetValue(this, null) + newStatusEffect.ValueChange);//, BindingFlags.NonPublic | BindingFlags.Instance, null, null, null);
+                piTargetProp.SetValue(this, (int)piTargetProp.GetValue(this, null) + newStatusEffect.ValueChange);
             }
             else if (piTargetProp.PropertyType == typeof(Stat))
             {
-                MethodInfo miTargetProp = typeof(Entity).GetMethod("ChangeValue");
-                miTargetProp.Invoke(miTargetProp, new object[] {newStatusEffect.ValueChange});
+                MethodInfo miTargetProp = typeof(Stat).GetMethod("ChangeValue", BindingFlags.Public | BindingFlags.Instance);
+                miTargetProp.Invoke(piTargetProp.GetValue(this), new object[] {newStatusEffect.ValueChange});
             }
             else
             {
                 throw new InvalidEntityPropertyException($"{newStatusEffect.TargetProp} is not a valid property for {Name}.");
             }
-            Console.WriteLine($"{Name} is {newStatusEffect.Name}. {Pronouns[2]} {newStatusEffect.TargetProp} is {(newStatusEffect.ValueChange >= 0 ? "increased" : "decreased")} by {Math.Abs(newStatusEffect.ValueChange)}.");
+            Console.WriteLine($"{Name} is {newStatusEffect.Name}. {Pronouns[2]} {newStatusEffect.TargetProp.FromTitleOrCamelCase()} is {(newStatusEffect.ValueChange >= 0 ? "increased" : "decreased")} by {Math.Abs(newStatusEffect.ValueChange)}.");
         }
 
         public void UnapplyStatusEffect(StatusEffect currentStatusEffect)
@@ -232,7 +230,7 @@ namespace DungeonCrawler
                 currentStatusEffect.TargetProp, 
                 currentStatusEffect.ValueChange*-1, 
                 currentStatusEffect.Recurring,
-                false
+                hasCoolDown: currentStatusEffect.HasCoolDown
             );
             ApplyStatusEffect(reversedStatusEffect);
         }
@@ -242,10 +240,10 @@ namespace DungeonCrawler
             foreach (var statusEffect in StatusEffects)
             {
                 statusEffect.DecrementDuration();
-                if (statusEffect.Recurring == true) ApplyStatusEffect(statusEffect);
+                if (statusEffect.Recurring) ApplyStatusEffect(statusEffect);
                 if (statusEffect.Duration == 0) 
                 {
-                    UnapplyStatusEffect(statusEffect);
+                    if (statusEffect.UndoWhenFinished) UnapplyStatusEffect(statusEffect);
                     Console.WriteLine($"{Name} is no longer {statusEffect.Name}.");
                 }
             }
