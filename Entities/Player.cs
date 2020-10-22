@@ -2,14 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using static DungeonCrawler.ExtensionsAndHelpers;
+using static DungeonCrawler.Dice;
 
 namespace DungeonCrawler
 {
     public class Player : SentientCreature
     {
-        public override char Symbol {get; protected set;} = Symbols.PlayerS;
-        public Player(string name, int level, char gender, int[] abilityScoreValues, Race race, Caste caste, MapPoint location = null) : base(name, level, gender, race, caste, abilityScoreValues, location)
+        public override char Symbol => IsDead ? Symbols.Dead : Symbols.Player;
+        public Player(string name, int level, char gender, int[] abilityScoreValues, Race race, Caste caste, int team = 0, MapPoint location = null) : 
+        base(name, level, gender, race, caste, team, abilityScoreValues, location)
         {
+            Team = team;
         }
 
         public override string GetDescription()
@@ -17,7 +20,7 @@ namespace DungeonCrawler
             return $"{Name} is a level {Level.Value} {Race.Name} {Caste.Name}. {Pronouns[2]} hit die is a d{_hitDie.NumSides.Value}, and {Pronouns[2].ToLower()} total HP is {_hp}.";
         }
 
-        public override void TakeTurn()
+        public override void TakeTurn(Combat combat)
         {
             var actionsRemaining = new List<string>() {"major", "minor", "move"};
             _movementRemaining = MovementSpeedFeet;
@@ -30,7 +33,8 @@ namespace DungeonCrawler
                 if (_movementRemaining <= 0) actionsRemaining.Remove("move");
                 if (actionsRemaining.Count == 0)
                 {
-                    Console.WriteLine($"{Name}'s turn is over because {Pronouns[0]} has no actions left.");
+                    Console.WriteLine($"{Name}'s turn is over because {Pronouns[0].ToLower()} has no actions left.");
+                    PressAnyKeyToContinue();
                     turnOver = true;
                 }
 
@@ -39,13 +43,15 @@ namespace DungeonCrawler
                 // Prompt player:
                 string formattedMovement = _movementRemaining != 0 ? $"({_movementRemaining} ft) " : "";
                 Console.WriteLine($"\nEnter an action or type 'pass' to pass your turn. {Name} has a {actionsRemaining.FormatToString("and")} action {formattedMovement}remaining.\n");
+                // List IEntityActions:
                 foreach (var action in Actions) 
                 {
                     if (actionsRemaining.Contains(action.Type)) Console.WriteLine($"- {action.Command} {action.Description} ({action.Type})");
                 }
-                Console.WriteLine($"\nEnter 'stats' at any time to view {Name}'s stats.\n");
+                Console.WriteLine($"\nTry 'help' for a list of other commands.\n");
 
                 string input = Console.ReadLine().ToLower();
+                // If IEntityAction command, parse input:
                 if (Actions.Any(a => a.Command == input.Split(' ')[0]))
                 {
                     string inputCommand = input.Split(' ')[0];
@@ -70,25 +76,94 @@ namespace DungeonCrawler
                     else
                     {
                         Console.WriteLine($"{Name} does not have a {inputAction.Type} action remaining.");
+                        PressAnyKeyToContinue();
                     }
                 }
+                // Check for other commands:
                 else if (input == "stats")
                 {
                     Console.WriteLine(GetAllStats());
                     PressAnyKeyToContinue();
                 }
+                else if (input == "order")
+                {
+                    Console.WriteLine(combat.GetInitiativeOrder());
+                    PressAnyKeyToContinue();
+                }
+                else if (input == "help")
+                {
+                    Console.WriteLine($"- stats - List {Name}'s stats.");
+                    Console.WriteLine($"- order - Show current initiative order.");
+                    PressAnyKeyToContinue();
+                }
                 else if (input == "pass")
                 {
+                    Console.WriteLine($"{Name} is passing {Pronouns[2]} turn.");
+                    PressAnyKeyToContinue();
                     turnOver = true;
                 }
                 else 
                 {
                     Console.WriteLine($"'{input}' could not be recognized. Please enter a valid command.");
+                    PressAnyKeyToContinue();
                 }
                 Console.Clear();
             }
             Console.Clear();
             TakingTurn = false;
         }
+    
+        // =======================================================================================
+        // ACTIONS:
+        // =======================================================================================
+        
+        // Major actions:   
+        public override bool Search()
+        {
+            Console.WriteLine($"{Name} is searching (WIS check)...");
+            int perceptionRoll = D20.Roll(1, getModifier("WIS"), true);
+            int perceptionCheck = perceptionRoll >= PassivePerception ? perceptionRoll : PassivePerception;
+            int searchRangeFeet = (perceptionCheck - 8) * 5;
+            Console.WriteLine($"Search range is {searchRangeFeet} feet.");
+            PressAnyKeyToContinue();
+
+            var foundObjects = BaseSearch(searchRangeFeet, perceptionCheck);
+
+            if (foundObjects.Count == 0)
+            {
+                Console.WriteLine($"{Name} searched but couldn't find anything!");
+            }
+            else
+            {
+                Console.WriteLine($"{Name} searched and found:");
+                foreach (var obj in foundObjects)
+                {
+                    var nObj = (INamed)obj;
+                    Console.WriteLine($"- {nObj.Name} located {Location.DistanceTo(obj.Location)*5} feet {Location.GetDirectionRelativeToThis(obj.Location)}.");
+                }
+            }
+            return true;
+        }
+
+        public override bool Hide()
+        {
+            if (HiddenDc <= 0)
+            {
+                return base.Hide();
+            }
+            else
+            {
+                Console.WriteLine($"{Name} is already hiding.");
+                return false;
+            }
+        }
+
+        // Minor actions:
+
+        // Move actions:
+        
+        // Minor actions:
+        
+        // Move actions:
     }
 }

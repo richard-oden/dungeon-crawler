@@ -27,6 +27,15 @@ namespace DungeonCrawler
         {}
     }
 
+        class InvalidAggressionException : System.Exception
+    {
+        public InvalidAggressionException()
+        {}
+        
+        public InvalidAggressionException(string message) : base(message)
+        {}
+    }
+
     class OutOfMapBoundsException : System.Exception
     {
         public OutOfMapBoundsException()

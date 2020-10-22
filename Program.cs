@@ -45,21 +45,24 @@ namespace DungeonCrawler
                 name: "Theodas", level: 10, gender: 'm',
                 race: new Elf("DEX", "INT"), caste: new Wizard(),
                 abilityScoreValues: new []{8, 10, 10, 18, 14, 12},
-                location: new MapPoint(5, 7, map1), disposition: (Disposition)3
+                team: 0, aggression: Aggression.High,
+                location: new MapPoint(5, 7, map1)
             );
 
             var giantRat1 = new NonSentientNpc
             (
                 name: "Giant Rat", level: 5, gender: 'n',
                 abilityScoreValues: new []{12, 14, 10, 4, 6, 10},
-                location: new MapPoint(2, 3, map1), disposition: (Disposition)0
+                team: 1, aggression: Aggression.High,
+                location: new MapPoint(2, 3, map1)
             );
 
             var broodMother1 = new NonSentientNpc
             (
                 name: "Rat Brood Mother", level: 7, gender: 'f',
                 abilityScoreValues: new []{14, 12, 14, 4, 7, 11},
-                location: new MapPoint(2, 4, map1), disposition: (Disposition)0
+                team: 1, aggression: Aggression.High,
+                location: new MapPoint(2, 4, map1)
             );
 
             var player1 = new Player
@@ -127,7 +130,9 @@ namespace DungeonCrawler
                     player2,
                     player3,
                     testSword,
-                    testTome     
+                    testTome,
+                    broodMother1,
+                    sentientNpc1     
                 }
             );
 
@@ -140,7 +145,7 @@ namespace DungeonCrawler
                 }
             }
 
-            var combat1 = new Combat(new List<Entity> {player1, player2, player3});
+            var combat1 = new Combat(new List<Entity> {player1, player2, player3, broodMother1, sentientNpc1});
             combat1.StartCombat();
         }
     }

@@ -2,14 +2,14 @@ namespace DungeonCrawler
 {
     public interface INpc
     {
-        Disposition Disposition {get;}
+        Aggression Aggression {get;}
+        
     }
 
-    public enum Disposition
+    public enum Aggression
     {
-        Hostile,
-        Neutral,
-        Friendly,
-        Allied
+        Low,    // Will not fight back if attacked
+        Mid,    // Will fight back if attacked
+        High    // Will fight
     }
 }

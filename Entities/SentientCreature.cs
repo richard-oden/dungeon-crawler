@@ -34,7 +34,8 @@ namespace DungeonCrawler
                 }
             }
         }       
-        public SentientCreature(string name, int level, char gender, Race race, Caste caste, int[] abilityScoreValues = null, MapPoint location = null) : base(name, level, gender, abilityScoreValues, null, location)
+        public SentientCreature(string name, int level, char gender, Race race, Caste caste, int team, int[] abilityScoreValues = null, MapPoint location = null) : 
+            base(name, level, gender, team, abilityScoreValues, null, location)
         {
             Race = race;
             Caste = caste;

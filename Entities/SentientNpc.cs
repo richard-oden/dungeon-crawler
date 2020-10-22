@@ -2,10 +2,12 @@ namespace DungeonCrawler
 {
     public class SentientNpc : SentientCreature, INpc
     {
-        public Disposition Disposition {get; protected set;}
-        public SentientNpc(string name, int level, char gender, Race race, Caste caste, int[] abilityScoreValues = null, MapPoint location = null, Disposition disposition = Disposition.Neutral) : base(name, level, gender, race, caste, abilityScoreValues, location)
+        public Aggression Aggression {get; protected set;}
+
+        public SentientNpc(string name, int level, char gender, Race race, Caste caste, int team, Aggression aggression, int[] abilityScoreValues = null, MapPoint location = null) : 
+            base(name, level, gender, race, caste, team, abilityScoreValues, location)
         {
-            Disposition = disposition;
+            Aggression = aggression;
         }
     }
 }

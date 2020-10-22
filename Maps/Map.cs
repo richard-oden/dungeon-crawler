@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static System.ConsoleColor;
 
 namespace DungeonCrawler
 {
@@ -77,16 +78,34 @@ namespace DungeonCrawler
             {
                 for (int x = 0; x < Width; x++)
                 {
+                    ConsoleColor consoleColor = DarkGray;
                     var thisObject = Objects.FirstOrDefault(o => o.Location.X == x && o.Location.Y == y);
                     if (thisObject != null)
                     {
                         if (thisObject is Entity)
                         {
                             var thisEntity = (Entity)thisObject;
-                            if (thisEntity.TakingTurn) Console.ForegroundColor = ConsoleColor.Red;
+                            if (thisEntity.TakingTurn)
+                            {
+                                consoleColor = DarkBlue;
+                            }
+                            else if (thisEntity is INpc && thisEntity.Team != 0)
+                            {
+                                consoleColor = (thisEntity as INpc).Aggression switch
+                                {
+                                    Aggression.Low => Green,
+                                    Aggression.Mid => DarkYellow,
+                                    Aggression.High => DarkRed,
+                                    _ => throw new InvalidAggressionException($"{(thisEntity as INpc).Aggression} is an invalid aggression level.")
+                                };
+                            }
                         }
+                        else if (thisObject is Item)
+                        {
+                            consoleColor = White;
+                        }
+                        Console.ForegroundColor = consoleColor;
                         Console.Write(thisObject.Symbol + " ");
-                        Console.ResetColor();
                     }
                     else
                     {
@@ -94,6 +113,7 @@ namespace DungeonCrawler
                     }
                 }
                 Console.WriteLine();
+                Console.ResetColor();
             }
         }
     }

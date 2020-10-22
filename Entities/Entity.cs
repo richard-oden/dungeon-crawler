@@ -45,19 +45,21 @@ namespace DungeonCrawler
         public List<Item> Items {get; protected set;} = new List<Item>();
         public MapPoint Location {get; protected set;}
         protected virtual int _attackRangeFeet {get; set;} = 5;
-        public virtual char Symbol {get; protected set;} = Symbols.Friendly;
+        public virtual char Symbol => IsDead ? Symbols.Dead : Team == 0 ? Symbols.Friendly : Symbols.Hostile;
         public virtual string Description {get; protected set;}
         public List<StatusEffect> StatusEffects {get; protected set;} = new List<StatusEffect>();
         public int HiddenDc {get; protected set;} = 0;
         public int PassivePerception {get; protected set;}
         protected List<IEntityAction> Actions = new List<IEntityAction>();
         public bool TakingTurn {get; protected set;}
+        public int Team {get; protected set;} // represents who this entity is allied with in combat
 
-        public Entity(string name, int level, char gender, int[] abilityScoreValues = null, Die hitDie = null, MapPoint location = null)
+        public Entity(string name, int level, char gender, int team, int[] abilityScoreValues = null, Die hitDie = null, MapPoint location = null)
         {
             Name = name;
             Level.SetValue(level);
             Gender = gender;
+            Team = team;
             AbilityScores = new AbilityScores(abilityScoreValues);
 
             _experience = 0;
@@ -77,7 +79,7 @@ namespace DungeonCrawler
             Actions.Add(new TargetedAction("attack", $"[target name] - Attack a target creature within {_attackRangeFeet} feet.", "major", Attack));
             Actions.Add(new NonTargetedAction("search", "- Search surroundings for items and creatures.", "major", Search));
             Actions.Add(new NonTargetedAction("hide", "- Attempt to hide from enemies", "major", Hide));
-            Actions.Add(new TargetedAction("take", "[item name] - Pick up an item within 5 feet.", "minor", PickUpItem));
+            Actions.Add(new TargetedAction("take", "[item name] - Pick up an item within 5 feet.", "minor", TakeItem));
             Actions.Add(new TargetedAction("drop", "[item name] - Drop an item in inventory.", "minor", DropItem));
             Actions.Add(new TargetedAction("use", "[item name] - Use an item in inventory.", "minor", UseItem));
             Actions.Add(new TargetedAction("move", "[direction] [distance] - Move to an unoccupied space. Enter abbreviated direction and distance in feet. (e.g., NW 20)", "move", Move));
@@ -147,18 +149,31 @@ namespace DungeonCrawler
             Location = location;
         }
         
-        public virtual void TakeTurn()
+        public virtual void TakeTurn(Combat combat)
         {
             MaintainStatusEffects();
         }
 
-        public void RevealIfHidden()
+        public void RevealIfHidden(Entity enemy)
         {
             if (HiddenDc > 0)
             {
                 Console.WriteLine($"{Name} was spotted and is no longer hidden!");
                 HiddenDc = 0;
             }
+        }
+
+        public List<IMappable> BaseSearch(int searchRangeFeet, int perceptionCheck)
+        {
+            var foundObjects = Location.GetObjectsWithinRange(searchRangeFeet / 5).Where(o => o is INamed && o != this).ToList();
+            foundObjects.RemoveAll(o => o is Entity && 
+                                (o as Entity).Team != Team && 
+                                (o as Entity).HiddenDc > perceptionCheck);
+            foreach (var obj in foundObjects)
+            {
+                if (obj is Entity && (obj as Entity).Team != Team) (obj as Entity).RevealIfHidden(this);
+            }
+            return foundObjects;
         }
 
         // =======================================================================================
@@ -261,35 +276,18 @@ namespace DungeonCrawler
         // =======================================================================================
         
         // Major actions:   
-        public bool Search()
+        public virtual bool Search()
         {
-            Console.WriteLine($"{Name} is searching (WIS check)...");
-            int perceptionRoll = D20.Roll(1, getModifier("WIS"), true);
+            Console.WriteLine($"{Name} is searching...");
+            int perceptionRoll = D20.Roll(1, getModifier("WIS"));
             int perceptionCheck = perceptionRoll >= PassivePerception ? perceptionRoll : PassivePerception;
             int searchRangeFeet = (perceptionCheck - 8) * 5;
-            Console.WriteLine($"Search range is {searchRangeFeet} feet.");
-            PressAnyKeyToContinue();
 
-            var foundObjects = Location.GetObjectsWithinRange(searchRangeFeet / 5).Where(o => o is INamed && o != this).ToList();
-            foundObjects.RemoveAll(o => o is Entity && (o as Entity).HiddenDc > perceptionCheck);
-            if (foundObjects.Count == 0)
-            {
-                Console.WriteLine($"{Name} searched but couldn't find anything!");
-            }
-            else
-            {
-                Console.WriteLine($"{Name} searched and found:");
-                foreach (var obj in foundObjects)
-                {
-                    var nObj = (INamed)obj;
-                    if (nObj is Entity) (nObj as Entity).RevealIfHidden();
-                    Console.WriteLine($"- {nObj.Name} located {Location.DistanceTo(obj.Location)*5} feet {Location.GetDirectionRelativeToThis(obj.Location)}.");
-                }
-            }
+            var foundObjects = BaseSearch(searchRangeFeet, perceptionCheck);
             return true;
         }
 
-        public bool Attack(string targetName)
+        public virtual bool Attack(string targetName)
         {
             var entitiesOnMap = from o in Location.Map.Objects where o is Entity select (Entity)o;
             var target = entitiesOnMap.FirstOrDefault(e => e.Name.ToLower() == targetName);
@@ -299,7 +297,7 @@ namespace DungeonCrawler
                 {
                     if (target.HiddenDc <= PassivePerception)
                     {
-                        target.RevealIfHidden();
+                        target.RevealIfHidden(this);
                         Console.WriteLine($"{Name} is attacking {target.Name}...");
                         var attackResult = AttackRoll();
                         bool crit = attackResult.NaturalResults[0] == 20;
@@ -333,7 +331,7 @@ namespace DungeonCrawler
             return false;
         }
         
-        public bool Hide()
+        public virtual bool Hide()
         {
             Console.WriteLine($"{Name} is attempting to hide..");
             HiddenDc = D20.Roll(1, getModifier("DEX"), true);
@@ -341,7 +339,7 @@ namespace DungeonCrawler
         }
         
         // Minor actions:
-        public bool PickUpItem(string itemName)
+        public virtual bool TakeItem(string itemName)
         {
             var adjacentObjects = Location.GetObjectsWithinRange(1);
             var adjacentItems = from o in adjacentObjects where o is Item select (Item)o;
@@ -363,7 +361,7 @@ namespace DungeonCrawler
             return false;
         }
         
-        public bool DropItem(string itemName)
+        public virtual bool DropItem(string itemName)
         {
             var foundItem = Items.FirstOrDefault(i => i.Name.ToLower() == itemName);
             if (foundItem != null)
@@ -394,7 +392,7 @@ namespace DungeonCrawler
             return false;
         }
         
-        public bool UseItem(string itemName)
+        public virtual bool UseItem(string itemName)
         {
             var foundItem = Items.FirstOrDefault(i => i.Name.ToLower() == itemName);
             if (foundItem != null)
