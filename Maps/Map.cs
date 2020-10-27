@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using static System.ConsoleColor;
 
 namespace DungeonCrawler
@@ -11,11 +12,49 @@ namespace DungeonCrawler
         public int Height {get; private set;}
         public List<IMappable> Objects {get; private set;}
         
+        public Map()
+        {
+            Objects = new List<IMappable>();
+        }
+        
         public Map(int width, int height)
         {
             Width = width;
             Height = height;
             Objects = new List<IMappable>();
+        }
+
+        public static Map CsvToMap(string csvFileName)
+        {
+            string currentDirectory = Directory.GetCurrentDirectory();
+            var fileName = Path.Combine(currentDirectory, csvFileName);
+            var mapObjects = new List<IMappable>();
+            Map newMap = new Map();
+            int lineNumber = 1;
+            using (var reader = new StreamReader(fileName)) // using directive closes streamreader after finished
+            {
+                string line = "";
+                reader.ReadLine(); // consumes first line, which only contains headings
+                while((line = reader.ReadLine()) != null) // while the line is not null
+                {
+                    string[] values = line.Split(',');
+                    if (lineNumber == 1)
+                    {
+                        newMap.Width = int.Parse(values[3]);
+                        newMap.Height = int.Parse(values[4]);
+                    }
+                    string locationType = values[0];
+                    int x = int.Parse(values[1]);
+                    int y = int.Parse(values[2]);
+                    if (locationType == "Wall")
+                    {
+                        mapObjects.Add(new Wall(new MapPoint(x, y, newMap)));
+                    }
+                    lineNumber++;
+                }
+            }
+            newMap.AddObjects(mapObjects);
+            return newMap;
         }
         
         public bool OnMap(MapPoint point)
@@ -106,16 +145,6 @@ namespace DungeonCrawler
                             if (thisEntity.TakingTurn)
                             {
                                 consoleColor = DarkBlue;
-                            }
-                            else if (thisEntity is INpc && thisEntity.Team != 0)
-                            {
-                                consoleColor = (thisEntity as INpc).Aggression switch
-                                {
-                                    Aggression.Low => Green,
-                                    Aggression.Mid => DarkYellow,
-                                    Aggression.High => DarkRed,
-                                    _ => throw new InvalidAggressionException($"{(thisEntity as INpc).Aggression} is an invalid aggression level.")
-                                };
                             }
                         }
                         else if (thisObject is Item)

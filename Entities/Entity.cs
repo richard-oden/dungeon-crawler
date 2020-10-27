@@ -318,12 +318,10 @@ namespace DungeonCrawler
                                 var damageResult = DamageRoll(crit);
                                 Console.WriteLine($"{target.Name} takes {damageResult} points of damage!");
                                 target.ChangeHp(damageResult*-1);
-                                if (target is INpc) (target as INpc).DamagedBy(this);
                             }
                             else
                             {
                                 Console.WriteLine("It's a miss!");
-                                if (target is INpc) (target as INpc).AttackedBy(this);
                             }
                             return true;
                         }

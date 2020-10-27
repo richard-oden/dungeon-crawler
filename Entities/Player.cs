@@ -131,7 +131,7 @@ namespace DungeonCrawler
                 foreach (var obj in foundObjects)
                 {
                     var nObj = (INamed)obj;
-                    Console.WriteLine($"- {nObj.Name} located {Location.DistanceTo(obj.Location)*5} feet {Location.DirectionTo(obj.Location)}.");
+                    Console.WriteLine($"- {nObj.Name} located {Math.Round(Location.DistanceTo(obj.Location)*5)} feet {Location.DirectionTo(obj.Location)}.");
                 }
             }
             return true;

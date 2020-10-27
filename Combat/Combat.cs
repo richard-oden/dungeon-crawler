@@ -18,11 +18,6 @@ namespace DungeonCrawler
 
         public void StartCombat()
         {
-            // Establish base knowledge of map objects for each npc: 
-            foreach (Entity combatant in Combatants)
-            {
-                if (combatant is INpc) combatant.Search();
-            }
 
             Console.WriteLine("Combat has begun! Current initiative order:");
             Console.WriteLine(GetInitiativeOrder());
@@ -52,21 +47,14 @@ namespace DungeonCrawler
 
         public bool StillFighting()
         {
-            var npcs = from c in Combatants where c is INpc select (INpc)c;
-            var players = from c in Combatants where c is Player select (Player)c;
-            // Check combat ending conditions
-            if (Combatants.Where(c => c.Team != 0).All(c => c.IsDead))
+            // Check if only one team remains:
+            if (Combatants.Where(c => !c.IsDead).All(c => c.Team == Combatants[0].Team))
             {
-                Console.WriteLine("The fight is over! No enemies remain.");
+                var winner = Combatants.Where(c => !c.IsDead).Select(c => c.Name).FormatToString("and");
+                Console.WriteLine($"The fight is over! {winner} win(s)!");
                 return false;
             }
-            else if (Combatants.Where(c => c is INpc && c.Team != 0 && !c.IsDead)
-                                .All(c => (c as INpc).Aggression < Aggression.High))
-            {
-                Console.WriteLine("The fight is over! No hostile enemies remain.");
-                return false;
-            }
-            else if (players.All(p => p.IsDead))
+            else if (Combatants.All(c => c.IsDead))
             {
                 Console.WriteLine("The fight is over! All players have died.");
                 return false;
