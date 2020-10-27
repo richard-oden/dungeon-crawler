@@ -17,7 +17,7 @@ namespace DungeonCrawler
 
         public override string GetDescription()
         {
-            return $"{Name} is a level {Level.Value} {Race.Name} {Caste.Name}. {Pronouns[2]} hit die is a d{_hitDie.NumSides.Value}, and {Pronouns[2].ToLower()} total HP is {_hp}.";
+            return $"{Name} is a level {Level.Value} {Race.Name} {Caste.Name}. {Pronouns[2]} hit die is a d{_hitDie.NumSides.Value}, and {Pronouns[2].ToLower()} total HP is {Hp}.";
         }
 
         public override void TakeTurn(Combat combat)
@@ -98,7 +98,7 @@ namespace DungeonCrawler
                 }
                 else if (input == "pass")
                 {
-                    Console.WriteLine($"{Name} is passing {Pronouns[2]} turn.");
+                    Console.WriteLine($"{Name} is passing {Pronouns[2].ToLower()} turn.");
                     PressAnyKeyToContinue();
                     turnOver = true;
                 }
@@ -112,7 +112,6 @@ namespace DungeonCrawler
             Console.Clear();
             TakingTurn = false;
         }
-    
         // =======================================================================================
         // ACTIONS:
         // =======================================================================================
@@ -120,14 +119,7 @@ namespace DungeonCrawler
         // Major actions:   
         public override bool Search()
         {
-            Console.WriteLine($"{Name} is searching (WIS check)...");
-            int perceptionRoll = D20.Roll(1, getModifier("WIS"), true);
-            int perceptionCheck = perceptionRoll >= PassivePerception ? perceptionRoll : PassivePerception;
-            int searchRangeFeet = (perceptionCheck - 8) * 5;
-            Console.WriteLine($"Search range is {searchRangeFeet} feet.");
-            PressAnyKeyToContinue();
-
-            var foundObjects = BaseSearch(searchRangeFeet, perceptionCheck);
+            var foundObjects = BaseSearch();
 
             if (foundObjects.Count == 0)
             {
@@ -139,7 +131,7 @@ namespace DungeonCrawler
                 foreach (var obj in foundObjects)
                 {
                     var nObj = (INamed)obj;
-                    Console.WriteLine($"- {nObj.Name} located {Location.DistanceTo(obj.Location)*5} feet {Location.GetDirectionRelativeToThis(obj.Location)}.");
+                    Console.WriteLine($"- {nObj.Name} located {Location.DistanceTo(obj.Location)*5} feet {Location.DirectionTo(obj.Location)}.");
                 }
             }
             return true;

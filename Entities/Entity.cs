@@ -26,8 +26,8 @@ namespace DungeonCrawler
         public AbilityScores AbilityScores {get; protected set;}
         public virtual int ArmorClass => 10 + (AbilityScores.TotalScores["CON"] > AbilityScores.TotalScores["DEX"] ? getModifier("CON") : getModifier("DEX"));
         protected Die _hitDie;
-        protected int _hp {get; set;}
-        protected Stat _currentHp {get; set;}
+        public int Hp {get; set;}
+        public Stat CurrentHp {get; set;}
         public bool IsDead {get; protected set;} = false;
         public int CurrentInitiative {get; protected set;}
         public int MovementSpeedFeet => 20 + (getModifier("DEX") * 5);
@@ -53,7 +53,7 @@ namespace DungeonCrawler
         protected List<IEntityAction> Actions = new List<IEntityAction>();
         public bool TakingTurn {get; protected set;}
         public int Team {get; protected set;} // represents who this entity is allied with in combat
-
+        
         public Entity(string name, int level, char gender, int team, int[] abilityScoreValues = null, Die hitDie = null, MapPoint location = null)
         {
             Name = name;
@@ -65,12 +65,12 @@ namespace DungeonCrawler
             _experience = 0;
             hitDie ??= new Die(6);
             _hitDie = hitDie;
-            _hp = 0;
+            Hp = 0;
             for (int j = 0; j < Level.Value; j++)
             {
-                _hp += _hitDie.Roll(1, getModifier("CON"));
+                Hp += _hitDie.Roll(1, getModifier("CON"));
             }
-            _currentHp = new Stat("HP", 0, _hp, _hp);
+            CurrentHp = new Stat("HP", 0, Hp, Hp);
 
             PassivePerception = AbilityScores.TotalScores["WIS"];
 
@@ -87,13 +87,13 @@ namespace DungeonCrawler
 
         public virtual string GetDescription()
         {
-            return $"{Name} lvl {Level.Value} has a hit die of d{_hitDie.NumSides.Value}, and total HP of {_hp}.";
+            return $"{Name} lvl {Level.Value} has a hit die of d{_hitDie.NumSides.Value}, and total HP of {Hp}.";
         }
 
         public virtual string GetAllStats()
         {
             string output = $"{Name}, lvl {Level.Value} {char.ToUpper(Gender)}\n";
-            output += $"HP: {_currentHp.Value} / {_hp} AC: {ArmorClass}\n";
+            output += $"HP: {CurrentHp.Value} / {Hp} AC: {ArmorClass}\n";
             output += $"{AbilityScores.GetShortDescription()}\n";
             output += $"Inventory: {ListItems()}";
             output += $"Status Effects: {ListStatusEffects()}";
@@ -136,8 +136,8 @@ namespace DungeonCrawler
 
         public void ChangeHp(int amount)
         {
-            _currentHp.ChangeValue(amount);
-            if (_currentHp.Value == 0)
+            CurrentHp.ChangeValue(amount);
+            if (CurrentHp.Value == 0)
             {
                 IsDead = true;
                 Console.WriteLine($"{Name} has died!");
@@ -163,12 +163,21 @@ namespace DungeonCrawler
             }
         }
 
-        public List<IMappable> BaseSearch(int searchRangeFeet, int perceptionCheck)
+        public List<IMappable> BaseSearch()
         {
-            var foundObjects = Location.GetObjectsWithinRange(searchRangeFeet / 5).Where(o => o is INamed && o != this).ToList();
-            foundObjects.RemoveAll(o => o is Entity && 
-                                (o as Entity).Team != Team && 
-                                (o as Entity).HiddenDc > perceptionCheck);
+            Console.WriteLine($"{Name} is searching...");
+            int perceptionRoll = D20.Roll(1, getModifier("WIS"), true);
+            int perceptionCheck = perceptionRoll >= PassivePerception ? perceptionRoll : PassivePerception;
+            int searchRangeFeet = (perceptionCheck - 8) * 5;
+
+            var foundObjects = Location.GetObjectsWithinRange(searchRangeFeet / 5).Where(fO => fO is INamed && fO != this).ToList();
+            foundObjects.RemoveAll(fO =>
+                                  // Entity is not found if it is on another team and is successfully hiding:
+                                   fO is Entity && 
+                                  (fO as Entity).Team != Team && 
+                                  (fO as Entity).HiddenDc > perceptionCheck ||
+                                  // Object is not found if line of sight is blocked:
+                                  !hasLineOfSightTo(fO));
             foreach (var obj in foundObjects)
             {
                 if (obj is Entity && (obj as Entity).Team != Team) (obj as Entity).RevealIfHidden(this);
@@ -176,6 +185,11 @@ namespace DungeonCrawler
             return foundObjects;
         }
 
+        protected bool hasLineOfSightTo(IMappable target)
+        {
+            return !Location.Map.Objects.Any(o => MapPoint.IsPointOnLineSegment(Location, target.Location, o.Location) && o != this && o != target);
+        }
+        
         // =======================================================================================
         // ITEM RELATED:
         // =======================================================================================
@@ -278,45 +292,49 @@ namespace DungeonCrawler
         // Major actions:   
         public virtual bool Search()
         {
-            Console.WriteLine($"{Name} is searching...");
-            int perceptionRoll = D20.Roll(1, getModifier("WIS"));
-            int perceptionCheck = perceptionRoll >= PassivePerception ? perceptionRoll : PassivePerception;
-            int searchRangeFeet = (perceptionCheck - 8) * 5;
-
-            var foundObjects = BaseSearch(searchRangeFeet, perceptionCheck);
+            BaseSearch();
             return true;
         }
-
+        
         public virtual bool Attack(string targetName)
         {
             var entitiesOnMap = from o in Location.Map.Objects where o is Entity select (Entity)o;
-            var target = entitiesOnMap.FirstOrDefault(e => e.Name.ToLower() == targetName);
+            var target = entitiesOnMap.FirstOrDefault(e => e.Name.ToLower() == targetName.ToLower());
             if (target != null)
             {
                 if (Location.InRangeOf(target.Location, _attackRangeFeet/5))
                 {
-                    if (target.HiddenDc <= PassivePerception)
+                    if (hasLineOfSightTo(target))
                     {
-                        target.RevealIfHidden(this);
-                        Console.WriteLine($"{Name} is attacking {target.Name}...");
-                        var attackResult = AttackRoll();
-                        bool crit = attackResult.NaturalResults[0] == 20;
-                        if (attackResult.TotalResult >= target.ArmorClass || crit)
+                        if (target.HiddenDc <= PassivePerception)
                         {
-                            Console.WriteLine(crit ? "It's a critical hit!" : "It's a hit!");
-                            var damageResult = DamageRoll(crit);
-                            Console.WriteLine($"{target.Name} takes {damageResult} points of damage!");
-                            target.ChangeHp(damageResult*-1);
+                            target.RevealIfHidden(this);
+                            Console.WriteLine($"{Name} is attacking {target.Name}...");
+                            var attackResult = AttackRoll();
+                            bool crit = attackResult.NaturalResults[0] == 20;
+                            if (attackResult.TotalResult >= target.ArmorClass || crit)
+                            {
+                                Console.WriteLine(crit ? "It's a critical hit!" : "It's a hit!");
+                                var damageResult = DamageRoll(crit);
+                                Console.WriteLine($"{target.Name} takes {damageResult} points of damage!");
+                                target.ChangeHp(damageResult*-1);
+                                if (target is INpc) (target as INpc).DamagedBy(this);
+                            }
+                            else
+                            {
+                                Console.WriteLine("It's a miss!");
+                                if (target is INpc) (target as INpc).AttackedBy(this);
+                            }
+                            return true;
                         }
                         else
                         {
-                            Console.WriteLine("It's a miss!");
+                            Console.WriteLine($"{Name} cannot find {target.Name} because they are hidden!");
                         }
-                        return true;
                     }
                     else
                     {
-                        Console.WriteLine($"{Name} cannot find {target.Name} because they are hidden!");
+                        Console.WriteLine($"{Name} cannot hit {target.Name} because {Pronouns[2].ToLower()} line of sight is blocked!");
                     }
                 }
                 else
@@ -371,9 +389,7 @@ namespace DungeonCrawler
                 {
                     if (RemoveItem(foundItem))
                     {
-                        var openSpaces = Location.GetAdjacentCoordinates().Where(c => 
-                                         !adjacentObjects.Any(o => o.Location.X == c[0] && o.Location.Y == c[1]));
-                        int[] openSpace = openSpaces.RandomElement();
+                        int[] openSpace = Location.Map.GetOpenSpaces(Location.GetAdjacentCoordinates()).RandomElement();
                         foundItem.SetLocation(new MapPoint(openSpace[0], openSpace[1], Location.Map));
                         Location.Map.AddObject(foundItem);
                         Console.WriteLine($"{Name} dropped the {itemName}.");
@@ -394,7 +410,7 @@ namespace DungeonCrawler
         
         public virtual bool UseItem(string itemName)
         {
-            var foundItem = Items.FirstOrDefault(i => i.Name.ToLower() == itemName);
+            var foundItem = Items.FirstOrDefault(i => i.Name.ToLower() == itemName.ToLower());
             if (foundItem != null)
             {
                 if (foundItem is Consumable)
@@ -442,6 +458,7 @@ namespace DungeonCrawler
                             if (obstruction == null)
                             {
                                 Location = tempLocation;
+                                Console.WriteLine($"{Name} moved {direction.ToUpper()} {distanceFeet} feet.");
                                 _movementRemaining -= distanceFeet;
                             }
                             else

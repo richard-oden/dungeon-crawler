@@ -27,12 +27,21 @@ namespace DungeonCrawler
         {}
     }
 
-        class InvalidAggressionException : System.Exception
+    class InvalidAggressionException : System.Exception
     {
         public InvalidAggressionException()
         {}
         
         public InvalidAggressionException(string message) : base(message)
+        {}
+    }
+
+    class InvalidDirectionException : System.Exception
+    {
+        public InvalidDirectionException()
+        {}
+        
+        public InvalidDirectionException(string message) : base(message)
         {}
     }
 

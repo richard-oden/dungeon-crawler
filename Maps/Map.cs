@@ -72,6 +72,24 @@ namespace DungeonCrawler
             }
         }
 
+        public int[][] GetOpenSpaces(IEnumerable<int[]> coordinates)
+        {
+           return coordinates.Where(c => !Objects.Any(o => o.Location.X == c[0] && o.Location.Y == c[1])).ToArray();
+        }
+
+        public int[][] GetAllOpenSpaces()
+        {
+            var allCoordinates = new List<int[]>();
+            for (int x = 0; x < Width; x++)
+            {
+                for (int y = 0; y < Height; y++)
+                {
+                    allCoordinates.Add(new[] {x, y});
+                }
+            }
+            return GetOpenSpaces(allCoordinates);
+        }
+
         public void PrintMap()
         {
             for (int y = 0; y < Height; y++)

@@ -114,13 +114,13 @@ namespace DungeonCrawler
             }
         }
     
-        public string GetDirectionRelativeToThis(MapPoint that)
+        public string DirectionTo(MapPoint that)
         {
             string output = "";
             if (that.Y < this.Y) output += "N";
             else if (that.Y > this.Y) output += "S";
-            if (that.X < this.X) output += "E";
-            else if (that.X > this.X) output += "W";
+            if (that.X > this.X) output += "E";
+            else if (that.X < this.X) output += "W";
             return output;
         }
     }

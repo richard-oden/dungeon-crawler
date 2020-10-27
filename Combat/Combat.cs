@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static DungeonCrawler.ExtensionsAndHelpers;
 
 namespace DungeonCrawler
 {
@@ -17,6 +18,12 @@ namespace DungeonCrawler
 
         public void StartCombat()
         {
+            // Establish base knowledge of map objects for each npc: 
+            foreach (Entity combatant in Combatants)
+            {
+                if (combatant is INpc) combatant.Search();
+            }
+
             Console.WriteLine("Combat has begun! Current initiative order:");
             Console.WriteLine(GetInitiativeOrder());
             bool fighting = true;
@@ -27,6 +34,7 @@ namespace DungeonCrawler
                 {
                     if (!StillFighting()) break;
                     Console.WriteLine($"It is {combatant.Name}'s turn.");
+                    PressAnyKeyToContinue();
                     combatant.TakeTurn(this);
                 }
             }

@@ -36,7 +36,7 @@ namespace DungeonCrawler
             (
                 "Minor Health Potion", 30, 3, new List<StatusEffect>()
                 {
-                    new StatusEffect("healing", 0, "_currentHp", Dice.D4.Roll(3, true), false, false)
+                    new StatusEffect("healing", 0, "CurrentHp", Dice.D4.Roll(3, true), false, false)
                 }
             );
 
@@ -60,7 +60,7 @@ namespace DungeonCrawler
             var broodMother1 = new NonSentientNpc
             (
                 name: "Rat Brood Mother", level: 7, gender: 'f',
-                abilityScoreValues: new []{14, 12, 14, 4, 7, 11},
+                abilityScoreValues: new []{14, 12, 14, 4, 18, 11},
                 team: 1, aggression: Aggression.High,
                 location: new MapPoint(2, 4, map1)
             );
@@ -127,12 +127,11 @@ namespace DungeonCrawler
                     new Wall(new MapPoint(9, 7, map1)),
                     new Wall(new MapPoint(9, 8, map1)),
                     player1,
-                    player2,
-                    player3,
+                    // player2,
+                    // player3,
                     testSword,
                     testTome,
-                    broodMother1,
-                    sentientNpc1     
+                    broodMother1    
                 }
             );
 
@@ -145,7 +144,7 @@ namespace DungeonCrawler
                 }
             }
 
-            var combat1 = new Combat(new List<Entity> {player1, player2, player3, broodMother1, sentientNpc1});
+            var combat1 = new Combat(new List<Entity> {player1, broodMother1});
             combat1.StartCombat();
         }
     }
