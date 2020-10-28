@@ -9,10 +9,22 @@ namespace DungeonCrawler
     public class Player : SentientCreature
     {
         public override char Symbol => IsDead ? Symbols.Dead : Symbols.Player;
+        private List<IEntityAction> _actions;
+
         public Player(string name, int level, char gender, int[] abilityScoreValues, Race race, Caste caste, int team = 0, MapPoint location = null) : 
         base(name, level, gender, race, caste, team, abilityScoreValues, location)
         {
             Team = team;
+            _actions = new List<IEntityAction>
+            {
+                new TargetedAction("attack", $"[target name] - Attack a target creature within {_attackRangeFeet} feet.", "major", Attack),
+                new NonTargetedAction("search", "- Search surroundings for items and creatures.", "minor", Search),
+                new NonTargetedAction("hide", "- Attempt to hide from enemies", "major", Hide),
+                new TargetedAction("take", "[item name] - Pick up an item within 5 feet.", "minor", TakeItem),
+                new TargetedAction("drop", "[item name] - Drop an item in inventory.", "minor", DropItem),
+                new TargetedAction("use", "[item name] - Use an item in inventory.", "major", UseItem),
+                new TargetedAction("move", "[direction] [distance] - Move to an unoccupied space. Enter abbreviated direction and distance in feet. (e.g., NW 20)", "move", Move)
+            };
         }
 
         public override string GetDescription()
@@ -44,7 +56,7 @@ namespace DungeonCrawler
                 string formattedMovement = _movementRemaining != 0 ? $"({_movementRemaining} ft) " : "";
                 Console.WriteLine($"\nEnter an action or type 'pass' to pass your turn. {Name} has a {actionsRemaining.FormatToString("and")} action {formattedMovement}remaining.\n");
                 // List IEntityActions:
-                foreach (var action in Actions) 
+                foreach (var action in _actions) 
                 {
                     if (actionsRemaining.Contains(action.Type)) Console.WriteLine($"- {action.Command} {action.Description} ({action.Type})");
                 }
@@ -52,10 +64,10 @@ namespace DungeonCrawler
 
                 string input = Console.ReadLine().ToLower();
                 // If IEntityAction command, parse input:
-                if (Actions.Any(a => a.Command == input.Split(' ')[0]))
+                if (_actions.Any(a => a.Command == input.Split(' ')[0]))
                 {
                     string inputCommand = input.Split(' ')[0];
-                    IEntityAction inputAction = Actions.FirstOrDefault(a => a.Command == inputCommand);
+                    IEntityAction inputAction = _actions.FirstOrDefault(a => a.Command == inputCommand);
                     if (actionsRemaining.Contains(inputAction.Type))
                     {
                         bool actionExecuted = false;
@@ -114,9 +126,24 @@ namespace DungeonCrawler
         }
         // =======================================================================================
         // ACTIONS:
+        // (each action returns true if it was successful)
         // =======================================================================================
         
-        // Major actions:   
+        // Major actions:
+        public override bool Hide()
+        {
+            if (HiddenDc <= 0)
+            {
+                return base.Hide();
+            }
+            else
+            {
+                Console.WriteLine($"{Name} is already hiding.");
+                return false;
+            }
+        }
+
+        // Minor actions:
         public override bool Search()
         {
             var foundObjects = BaseSearch();
@@ -137,25 +164,6 @@ namespace DungeonCrawler
             return true;
         }
 
-        public override bool Hide()
-        {
-            if (HiddenDc <= 0)
-            {
-                return base.Hide();
-            }
-            else
-            {
-                Console.WriteLine($"{Name} is already hiding.");
-                return false;
-            }
-        }
-
-        // Minor actions:
-
-        // Move actions:
-        
-        // Minor actions:
-        
         // Move actions:
     }
 }

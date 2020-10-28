@@ -50,7 +50,6 @@ namespace DungeonCrawler
         public List<StatusEffect> StatusEffects {get; protected set;} = new List<StatusEffect>();
         public int HiddenDc {get; protected set;} = 0;
         public int PassivePerception {get; protected set;}
-        protected List<IEntityAction> Actions = new List<IEntityAction>();
         public bool TakingTurn {get; protected set;}
         public int Team {get; protected set;} // represents who this entity is allied with in combat
         
@@ -75,14 +74,6 @@ namespace DungeonCrawler
             PassivePerception = AbilityScores.TotalScores["WIS"];
 
             Location = location;
-
-            Actions.Add(new TargetedAction("attack", $"[target name] - Attack a target creature within {_attackRangeFeet} feet.", "major", Attack));
-            Actions.Add(new NonTargetedAction("search", "- Search surroundings for items and creatures.", "major", Search));
-            Actions.Add(new NonTargetedAction("hide", "- Attempt to hide from enemies", "major", Hide));
-            Actions.Add(new TargetedAction("take", "[item name] - Pick up an item within 5 feet.", "minor", TakeItem));
-            Actions.Add(new TargetedAction("drop", "[item name] - Drop an item in inventory.", "minor", DropItem));
-            Actions.Add(new TargetedAction("use", "[item name] - Use an item in inventory.", "minor", UseItem));
-            Actions.Add(new TargetedAction("move", "[direction] [distance] - Move to an unoccupied space. Enter abbreviated direction and distance in feet. (e.g., NW 20)", "move", Move));
         }
 
         public virtual string GetDescription()
@@ -287,9 +278,9 @@ namespace DungeonCrawler
         
         // =======================================================================================
         // ACTIONS:
+        // (each action returns true if it was successful)
         // =======================================================================================
-        
-        // Major actions:   
+         
         public virtual bool Search()
         {
             BaseSearch();
@@ -354,7 +345,6 @@ namespace DungeonCrawler
             return true;
         }
         
-        // Minor actions:
         public virtual bool TakeItem(string itemName)
         {
             var adjacentObjects = Location.GetObjectsWithinRange(1);
@@ -435,7 +425,6 @@ namespace DungeonCrawler
             return false;
         }
         
-        // Move actions:
         public virtual bool Move(string moveInput)
         {
             try
