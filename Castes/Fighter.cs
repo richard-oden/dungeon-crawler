@@ -4,6 +4,7 @@ namespace DungeonCrawler
 {
     class Fighter : Caste
     {
+        public TargetedAction Action {get; private set;}
         public Fighter()
         {
             Name = "Fighter";
@@ -11,6 +12,11 @@ namespace DungeonCrawler
             ArmorProficiency = "plate";
             CanUseShield = true;
             WeaponProficiency = new List<string> {"sword", "axe", "warhammer"};
+        }
+
+        private bool disarm()
+        {
+            return true;
         }
     }
 }

@@ -7,5 +7,6 @@ namespace DungeonCrawler
         string Command {get;}
         string Description {get;}
         string Type {get;}
+        bool Expendable {get;}
     }
 }

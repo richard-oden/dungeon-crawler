@@ -38,7 +38,9 @@ namespace DungeonCrawler
             base(name, level, gender, team, abilityScoreValues, null, location)
         {
             Race = race;
+            Race.SentientCreature = this;
             Caste = caste;
+            Caste.SentientCreature = this;
             _hitDie = race.HitDie;
             AbilityScores.AddMods(AbilityScores.RacialMods, Race.AbilityMods);
         }

@@ -9,13 +9,15 @@ namespace DungeonCrawler
         // Returns true if successful:
         public Func<bool> Execute {get; private set;}
         public string Type {get; private set;}
+        public bool Expendable {get; private set;}
 
-        public NonTargetedAction(string command, string description, string type, Func<bool> execute)
+        public NonTargetedAction(string command, string description, string type, Func<bool> execute, bool expendable = false)
         {
             Command = command;
             Description = description;
             Execute = execute;
             Type = type;
+            Expendable = expendable;
         }
     }
 }

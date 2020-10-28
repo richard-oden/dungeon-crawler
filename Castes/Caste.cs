@@ -9,6 +9,8 @@ namespace DungeonCrawler
         public string ArmorProficiency {get; protected set;}
         public bool CanUseShield {get; protected set;}
         public List<string> WeaponProficiency {get; protected set;}
+        public SentientCreature SentientCreature {get; set;}
+        public IEntityAction Action {get; protected set;}
         
         public string GetDescription()
         {

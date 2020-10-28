@@ -124,6 +124,7 @@ namespace DungeonCrawler
             Console.Clear();
             TakingTurn = false;
         }
+        
         // =======================================================================================
         // ACTIONS:
         // (each action returns true if it was successful)
