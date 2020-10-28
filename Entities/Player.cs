@@ -23,7 +23,8 @@ namespace DungeonCrawler
                 new TargetedAction("take", "[item name] - Pick up an item within 5 feet.", "minor", TakeItem),
                 new TargetedAction("drop", "[item name] - Drop an item in inventory.", "minor", DropItem),
                 new TargetedAction("use", "[item name] - Use an item in inventory.", "major", UseItem),
-                new TargetedAction("move", "[direction] [distance] - Move to an unoccupied space. Enter abbreviated direction and distance in feet. (e.g., NW 20)", "move", Move)
+                new TargetedAction("move", "[direction] [distance] - Move to an unoccupied space. Enter abbreviated direction and distance in feet. (e.g., NW 20)", "move", Move),
+                Caste.Action
             };
         }
 
@@ -60,6 +61,8 @@ namespace DungeonCrawler
                 {
                     if (actionsRemaining.Contains(action.Type)) Console.WriteLine($"- {action.Command} {action.Description} ({action.Type})");
                 }
+                // if (actionsRemaining.Contains(Race.Action.Type)) Console.WriteLine($"- {Race.Action.Command} {Race.Action.Description} ({Race.Action.Type})");
+                // if (actionsRemaining.Contains(Caste.Action.Type)) Console.WriteLine($"- {Caste.Action.Command} {Caste.Action.Description} ({Race.Action.Type})");
                 Console.WriteLine($"\nTry 'help' for a list of other commands.\n");
 
                 string input = Console.ReadLine().ToLower();

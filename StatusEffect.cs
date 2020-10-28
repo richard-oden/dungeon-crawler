@@ -11,7 +11,8 @@ namespace DungeonCrawler
         public bool Recurring {get; private set;}
         public bool UndoWhenFinished {get; private set;}
         public bool HasCoolDown {get; private set;}
-        public StatusEffect(string name, int duration, string targetProp, int valueChange, bool recurring = false, bool undoWhenFinished = false, bool hasCoolDown = false)
+        public string TargetedAbilityScore {get; private set;}
+        public StatusEffect(string name, int duration, string targetProp, int valueChange, string targetedAbilityScore = null, bool recurring = false, bool undoWhenFinished = false, bool hasCoolDown = false)
         {
             Name = name;
             Duration = duration;
@@ -20,6 +21,7 @@ namespace DungeonCrawler
             Recurring = recurring;
             UndoWhenFinished = undoWhenFinished;
             HasCoolDown = hasCoolDown;
+            TargetedAbilityScore = targetedAbilityScore;
         }
         public void DecrementDuration()
         {

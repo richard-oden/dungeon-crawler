@@ -24,13 +24,13 @@ namespace DungeonCrawler
         public Stat Level {get; protected set;} = new Stat("Level", 1, 100);
         protected int _experience {get; set;}
         public AbilityScores AbilityScores {get; protected set;}
-        public virtual int ArmorClass => 10 + (AbilityScores.TotalScores["CON"] > AbilityScores.TotalScores["DEX"] ? getModifier("CON") : getModifier("DEX"));
+        public virtual int ArmorClass => 10 + (AbilityScores.TotalScores["CON"] > AbilityScores.TotalScores["DEX"] ? GetModifier("CON") : GetModifier("DEX"));
         protected Die _hitDie;
         public int Hp {get; set;}
         public Stat CurrentHp {get; set;}
         public bool IsDead {get; protected set;} = false;
         public int CurrentInitiative {get; protected set;}
-        public int MovementSpeedFeet => 20 + (getModifier("DEX") * 5);
+        public int MovementSpeedFeet => 20 + (GetModifier("DEX") * 5);
         protected int _movementRemaining;
         protected double _maxCarryWeight => AbilityScores.TotalScores["STR"] * 15;
         protected double _currentWeightCarried
@@ -67,7 +67,7 @@ namespace DungeonCrawler
             Hp = 0;
             for (int j = 0; j < Level.Value; j++)
             {
-                Hp += _hitDie.Roll(1, getModifier("CON"));
+                Hp += _hitDie.Roll(1, GetModifier("CON"));
             }
             CurrentHp = new Stat("HP", 0, Hp, Hp);
 
@@ -91,7 +91,7 @@ namespace DungeonCrawler
             return output;
         }
 
-        protected int getModifier(string abilityScore)
+        public int GetModifier(string abilityScore)
         {
             return (int)Math.Floor(((double)AbilityScores.TotalScores[abilityScore] - 10.0) / 2.0);
         }
@@ -101,7 +101,7 @@ namespace DungeonCrawler
             if (AbilityScores.BaseScores.ContainsKey(abil))
             {
                 Console.WriteLine($"Rolling {AbilityScores.BaseScores[abil].Name} check for {this.Name}...");
-                return D20.Roll(1, getModifier(abil), true);
+                return D20.Roll(1, GetModifier(abil), true);
             }
             else 
             {
@@ -111,18 +111,18 @@ namespace DungeonCrawler
         
         public void InitiativeRoll(int mod = 0)
         {
-            CurrentInitiative = D20.Roll(1, (getModifier("DEX") + mod));
+            CurrentInitiative = D20.Roll(1, (GetModifier("DEX") + mod));
         }
         
         public virtual Die.Result AttackRoll()
         {
-            return Dice.D20.RollGetResult(1, getModifier("DEX"), true);
+            return Dice.D20.RollGetResult(1, GetModifier("DEX"), true);
         }
 
         public virtual int DamageRoll(bool crit)
         {
             int multiplier = crit ? 2 : 1;
-            return Dice.D4.Roll(multiplier, getModifier("STR"), true);
+            return Dice.D4.Roll(multiplier, GetModifier("STR"), true);
         }
 
         public void ChangeHp(int amount)
@@ -157,7 +157,7 @@ namespace DungeonCrawler
         public List<IMappable> BaseSearch()
         {
             Console.WriteLine($"{Name} is searching...");
-            int perceptionRoll = D20.Roll(1, getModifier("WIS"), true);
+            int perceptionRoll = D20.Roll(1, GetModifier("WIS"), true);
             int perceptionCheck = perceptionRoll >= PassivePerception ? perceptionRoll : PassivePerception;
             int searchRangeFeet = (perceptionCheck - 8) * 5;
 
@@ -234,6 +234,12 @@ namespace DungeonCrawler
                 MethodInfo miTargetProp = typeof(Stat).GetMethod("ChangeValue", BindingFlags.Public | BindingFlags.Instance);
                 miTargetProp.Invoke(piTargetProp.GetValue(this), new object[] {newStatusEffect.ValueChange});
             }
+            else if (piTargetProp.PropertyType == typeof(AbilityScores))
+            {
+                MethodInfo miTargetProp = typeof(AbilityScores).GetMethod("AddMods", BindingFlags.Public | BindingFlags.Instance);
+                var abilityScoreChange = new Dictionary<string, int>() {{newStatusEffect.TargetedAbilityScore, newStatusEffect.ValueChange}};
+                miTargetProp.Invoke(piTargetProp.GetValue(this), new object[] {AbilityScores.TempMods, abilityScoreChange});
+            }
             else
             {
                 throw new InvalidEntityPropertyException($"{newStatusEffect.TargetProp} is not a valid property for {Name}.");
@@ -248,7 +254,8 @@ namespace DungeonCrawler
                 "recovering from " + currentStatusEffect.Name, 
                 (currentStatusEffect.HasCoolDown ? currentStatusEffect.Duration : 0), 
                 currentStatusEffect.TargetProp, 
-                currentStatusEffect.ValueChange*-1, 
+                currentStatusEffect.ValueChange*-1,
+                currentStatusEffect.TargetedAbilityScore,
                 currentStatusEffect.Recurring,
                 hasCoolDown: currentStatusEffect.HasCoolDown
             );
@@ -341,7 +348,7 @@ namespace DungeonCrawler
         public virtual bool Hide()
         {
             Console.WriteLine($"{Name} is attempting to hide..");
-            HiddenDc = D20.Roll(1, getModifier("DEX"), true);
+            HiddenDc = D20.Roll(1, GetModifier("DEX"), true);
             return true;
         }
         

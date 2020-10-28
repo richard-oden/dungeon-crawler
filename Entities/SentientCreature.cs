@@ -12,7 +12,7 @@ namespace DungeonCrawler
         {
             get
             {
-                int score = 10 + (AbilityScores.TotalScores["CON"] > AbilityScores.TotalScores["DEX"] ? getModifier("CON") : getModifier("DEX"));
+                int score = 10 + (AbilityScores.TotalScores["CON"] > AbilityScores.TotalScores["DEX"] ? GetModifier("CON") : GetModifier("DEX"));
                 var armor = from i in Items where i is Armor select (Armor)i;
                 score += armor.Sum(a => a.ArmorClassBonus);
                 return score;
@@ -119,7 +119,7 @@ namespace DungeonCrawler
             {
                 var heldWeapons = from i in Items where i is Weapon select (Weapon)i;
                 int weaponAttackBonus = heldWeapons.Sum(w => w.AttackBonus);
-                return Dice.D20.RollGetResult(1, (getModifier(Caste.AbilityProficiency) + weaponAttackBonus), true);
+                return Dice.D20.RollGetResult(1, (GetModifier(Caste.AbilityProficiency) + weaponAttackBonus), true);
             }
         }
 
@@ -137,7 +137,7 @@ namespace DungeonCrawler
                 int sumDamage = 0;
                 foreach (var w in heldWeapons)
                 {
-                    sumDamage += w.DamageDie.Roll(multiplier, (getModifier(Caste.AbilityProficiency) + weaponDamageBonus), true);
+                    sumDamage += w.DamageDie.Roll(multiplier, (GetModifier(Caste.AbilityProficiency) + weaponDamageBonus), true);
                 }
                 return sumDamage;
             }

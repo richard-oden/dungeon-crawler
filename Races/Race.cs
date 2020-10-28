@@ -10,7 +10,7 @@ namespace DungeonCrawler
         public List<string> NaturalAbilities {get; protected set;} = new List<string>();
         public Dictionary<string, int> AbilityMods {get; protected set;}
         public SentientCreature SentientCreature {get; set;}
-        public IEntityAction Action {get; protected set;}
+        public virtual IEntityAction Action {get; protected set;}
 
         protected void checkAndSetMods(string abil1, string abil2)
         {

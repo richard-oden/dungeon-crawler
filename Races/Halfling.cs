@@ -4,7 +4,7 @@ namespace DungeonCrawler
 {
     public class Halfling : Race
     {
-        public NonTargetedAction Action {get; private set;}
+        public override IEntityAction Action {get; protected set;}
         public Halfling(string abil1, string abil2)
         {
             Name = "Halfling";

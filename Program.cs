@@ -57,7 +57,7 @@ namespace DungeonCrawler
             (
                 "Minor Health Potion", 30, 3, new List<StatusEffect>()
                 {
-                    new StatusEffect("healing", 0, "CurrentHp", Dice.D4.Roll(3), false, false)
+                    new StatusEffect("healing", 0, "CurrentHp", Dice.D4.Roll(3))
                 }
             );
 
@@ -73,14 +73,14 @@ namespace DungeonCrawler
                 name: "Eldfar", level: 10, gender: 'm',
                 race: new Elf("INT", "WIS"), caste: new Wizard(),
                 abilityScoreValues: new []{8, 10, 10, 18, 12, 10},
-                location: new MapPoint(3, 18, demoMap), team: 1
+                location: new MapPoint(3, 4, demoMap), team: 1
             );
             var player3 = new Player
             (
                 name: "Stinthad", level: 10, gender: 'm',
                 race: new Dwarf("STR", "CON"), caste: new Fighter(),
                 abilityScoreValues: new []{18, 12, 16, 10, 18, 8},
-                location: new MapPoint(39, 3, demoMap), team: 2
+                location: new MapPoint(4, 4, demoMap), team: 2
             );
 
             demoMap.AddObjects(new List<IMappable>(){player1, player2, player3});

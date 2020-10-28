@@ -49,9 +49,6 @@ namespace DungeonCrawler
                     i++;
                 }
             }
-            AddMods(RacialMods, new Dictionary<string, int>());
-            AddMods(ItemMods, new Dictionary<string, int>());
-            AddMods(TempMods, new Dictionary<string, int>());
         }
         public AbilityScores(int[] scores, Dictionary<string, int> racialMods, Dictionary<string, int> itemMods,  Dictionary<string, int> tempMods)
         {
