@@ -13,7 +13,7 @@ namespace DungeonCrawler
             ArmorProficiency = "plate";
             CanUseShield = true;
             WeaponProficiency = new List<string> {"flail", "mace", "warhammer"};
-            Action = new NonTargetedAction("pray", "- You pray to your god and regain 1d8+WIS hp.", "major", prayer, true);
+            Action = new NonTargetedAction("pray", "- Cleric Ability: You pray to your god and regain 1d8+WIS hp.", "major", prayer);
         }
 
         private bool prayer()

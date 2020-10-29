@@ -14,7 +14,7 @@ namespace DungeonCrawler
             ArmorProficiency = "plate";
             CanUseShield = true;
             WeaponProficiency = new List<string> {"sword", "axe", "warhammer"};
-            Action = new TargetedAction("disarm", "[target name] - Attack a target. If they fail a STR check vs your STR, they drop their weapon.", "major", disarm, true);
+            Action = new TargetedAction("disarm", "[target name] - Fighter Ability: Attack a target. If they fail a STR check vs your STR, they drop their weapon.", "major", disarm);
         }
 
         private bool disarm(string targetName)
@@ -26,9 +26,8 @@ namespace DungeonCrawler
                             .FirstOrDefault(e => (e as Entity).Name.ToLower() == targetName.ToLower());
                 Console.WriteLine($"{SentientCreature.Name} is attempting to disarm {target.Name}!");
                 var targetWeapon = target.Items.FirstOrDefault(i => i is Weapon);
-                int targetSavingThrow = Dice.D20.Roll(1, target.GetModifier("STR"), true);
                 int passiveStrength = SentientCreature.AbilityScores.TotalScores["STR"];
-                if (targetSavingThrow < passiveStrength)
+                if (target.AbilityCheck("STR") < passiveStrength)
                 {
                     if (targetWeapon != null)
                     {

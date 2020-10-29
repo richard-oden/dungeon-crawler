@@ -64,26 +64,33 @@ namespace DungeonCrawler
             var player1 = new Player
             (
                 name: "Dyfena", level: 10, gender: 'f',
-                race: new Elf("DEX", "WIS"), caste: new Cleric(),
-                abilityScoreValues: new []{16, 14, 10, 10, 18, 8},
+                race: new Human("DEX", "WIS"), caste: new Cleric(),
+                abilityScoreValues: new []{13, 14, 12, 10, 15, 8},
                 location: new MapPoint(3, 3, demoMap), team: 0
             );
             var player2 = new Player
             (
                 name: "Eldfar", level: 10, gender: 'm',
                 race: new Elf("INT", "WIS"), caste: new Wizard(),
-                abilityScoreValues: new []{8, 10, 10, 18, 12, 10},
+                abilityScoreValues: new []{8, 13, 14, 15, 12, 10},
                 location: new MapPoint(3, 4, demoMap), team: 1
             );
             var player3 = new Player
             (
                 name: "Stinthad", level: 10, gender: 'm',
                 race: new Dwarf("STR", "CON"), caste: new Fighter(),
-                abilityScoreValues: new []{18, 12, 16, 10, 18, 8},
+                abilityScoreValues: new []{15, 14, 13, 12, 10, 8},
                 location: new MapPoint(4, 4, demoMap), team: 2
             );
+            var player4 = new Player
+            (
+                name: "Belovere", level: 10, gender: 'm',
+                race: new Halfling("DEX", "CHA"), caste: new Rogue(),
+                abilityScoreValues: new []{13, 14, 15, 10, 8, 12},
+                location: new MapPoint(4, 3, demoMap), team: 3
+            );
 
-            demoMap.AddObjects(new List<IMappable>(){player1, player2, player3});
+            demoMap.AddObjects(new List<IMappable>(){player1, player2, player3, player4});
 
             foreach (var obj in demoMap.Objects) 
             {
@@ -94,7 +101,7 @@ namespace DungeonCrawler
                 }
             }
 
-            var combat1 = new Combat(new List<Entity> {player1, player2, player3});
+            var combat1 = new Combat(new List<Entity> {player1, player2, player3, player4});
             combat1.StartCombat();
         }
     }

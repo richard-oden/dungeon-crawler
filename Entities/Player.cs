@@ -24,7 +24,8 @@ namespace DungeonCrawler
                 new TargetedAction("drop", "[item name] - Drop an item in inventory.", "minor", DropItem),
                 new TargetedAction("use", "[item name] - Use an item in inventory.", "major", UseItem),
                 new TargetedAction("move", "[direction] [distance] - Move to an unoccupied space. Enter abbreviated direction and distance in feet. (e.g., NW 20)", "move", Move),
-                Caste.Action
+                Caste.Action,
+                Race.Action
             };
         }
 
@@ -59,10 +60,17 @@ namespace DungeonCrawler
                 // List IEntityActions:
                 foreach (var action in _actions) 
                 {
-                    if (actionsRemaining.Contains(action.Type)) Console.WriteLine($"- {action.Command} {action.Description} ({action.Type})");
+                    if ((action == Caste.Action && CasteActionUses <= 0) || (action == Race.Action && RaceActionUses <= 0)) 
+                    {
+                        continue;
+                    }
+                    else if (actionsRemaining.Contains(action.Type))
+                    {
+                        int usesLeft = action == Caste.Action ? CasteActionUses : (action == Race.Action ? RaceActionUses : -1);
+                        string usesLeftText = usesLeft > -1 ? $", {usesLeft} uses left" : "";
+                        Console.WriteLine($"- {action.Command} {action.Description} ({action.Type}{usesLeftText})");
+                    }
                 }
-                // if (actionsRemaining.Contains(Race.Action.Type)) Console.WriteLine($"- {Race.Action.Command} {Race.Action.Description} ({Race.Action.Type})");
-                // if (actionsRemaining.Contains(Caste.Action.Type)) Console.WriteLine($"- {Caste.Action.Command} {Caste.Action.Description} ({Race.Action.Type})");
                 Console.WriteLine($"\nTry 'help' for a list of other commands.\n");
 
                 string input = Console.ReadLine().ToLower();
@@ -71,26 +79,41 @@ namespace DungeonCrawler
                 {
                     string inputCommand = input.Split(' ')[0];
                     IEntityAction inputAction = _actions.FirstOrDefault(a => a.Command == inputCommand);
-                    if (actionsRemaining.Contains(inputAction.Type))
+                    if ((inputAction == Caste.Action && CasteActionUses > 0) || 
+                        (inputAction == Race.Action && RaceActionUses > 0) ||
+                        (inputAction != Caste.Action && inputAction != Race.Action))
                     {
-                        bool actionExecuted = false;
-                        if (inputAction is TargetedAction)
+                        if (actionsRemaining.Contains(inputAction.Type))
                         {
-                            var inputTargetedAction = (TargetedAction)inputAction;
-                            string inputTarget = string.Join(' ', input.Split(' ').Skip(1));
-                            actionExecuted = inputTargetedAction.Execute(inputTarget);
+                            bool actionExecuted = false;
+                            if (inputAction is TargetedAction)
+                            {
+                                var inputTargetedAction = (TargetedAction)inputAction;
+                                string inputTarget = string.Join(' ', input.Split(' ').Skip(1));
+                                actionExecuted = inputTargetedAction.Execute(inputTarget);
+                            }
+                            else if (inputAction is NonTargetedAction)
+                            {
+                                var inputNonTargetedAction = (NonTargetedAction)inputAction;
+                                actionExecuted = inputNonTargetedAction.Execute();
+                            }
+                            PressAnyKeyToContinue();
+                            if (actionExecuted) 
+                            {
+                                actionsRemaining.Remove(inputAction.Type);
+                                if (inputAction == Caste.Action) CasteActionUses -= 1;
+                                else if (inputAction == Race.Action) RaceActionUses -= 1;
+                            }
                         }
-                        else if (inputAction is NonTargetedAction)
+                        else
                         {
-                            var inputNonTargetedAction = (NonTargetedAction)inputAction;
-                            actionExecuted = inputNonTargetedAction.Execute();
+                            Console.WriteLine($"{Name} does not have a {inputAction.Type} action remaining.");
+                            PressAnyKeyToContinue();
                         }
-                        PressAnyKeyToContinue();
-                        if (actionExecuted) actionsRemaining.Remove(inputAction.Type);
                     }
                     else
                     {
-                        Console.WriteLine($"{Name} does not have a {inputAction.Type} action remaining.");
+                        Console.WriteLine($"{Name} has already expended their uses of {inputAction.Command}.");
                         PressAnyKeyToContinue();
                     }
                 }

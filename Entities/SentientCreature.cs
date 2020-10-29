@@ -8,6 +8,8 @@ namespace DungeonCrawler
     {
         public Race Race {get; protected set;}
         public Caste Caste {get; protected set;}
+        public int RaceActionUses {get; protected set;} = 2;
+        public int CasteActionUses {get; protected set;} = 3;
         public override int ArmorClass
         {
             get
@@ -53,7 +55,7 @@ namespace DungeonCrawler
         public override string GetAllStats()
         {
             string output = $"{Name}, lvl {Level.Value} {char.ToUpper(Gender)} {Race.Name} {Caste.Name}\n";
-            output += $"HP: {CurrentHp.Value} / {Hp} AC: {ArmorClass}\n";
+            output += $"HP: {GetHpDescription()} AC: {ArmorClass}\n";
             output += $"{AbilityScores.GetShortDescription()}\n";
             output += $"Inventory: {ListItems()}\n";
             output += $"Status Effects: {ListStatusEffects()}\n";

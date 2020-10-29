@@ -27,7 +27,6 @@ namespace DungeonCrawler
 
         private bool inBounds(int value)
         {
-            //Console.WriteLine("Bounds check: " + (value > MinValue && value < MaxValue));
             return value >= MinValue && value <= MaxValue;
         }
 
@@ -35,9 +34,7 @@ namespace DungeonCrawler
         {
             if (inBounds(potentialValue)) 
             {
-                //Console.WriteLine("Potential Value: " + potentialValue);
                 Value = potentialValue;
-                //Console.WriteLine("Current Value: " + Value);
             }
             else if (potentialValue > MaxValue) 
             {

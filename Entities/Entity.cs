@@ -26,11 +26,13 @@ namespace DungeonCrawler
         public AbilityScores AbilityScores {get; protected set;}
         public virtual int ArmorClass => 10 + (AbilityScores.TotalScores["CON"] > AbilityScores.TotalScores["DEX"] ? GetModifier("CON") : GetModifier("DEX"));
         protected Die _hitDie;
-        public int Hp {get; set;}
+        public int Hp {get; set;} = 0;
         public Stat CurrentHp {get; set;}
+        public int TempHp {get; set;}
         public bool IsDead {get; protected set;} = false;
         public int CurrentInitiative {get; protected set;}
-        public int MovementSpeedFeet => 20 + (GetModifier("DEX") * 5);
+        protected int _baseMovementSpeedFeet {get; set;} = 20;
+        public int MovementSpeedFeet => _baseMovementSpeedFeet + (GetModifier("DEX") * 5);
         protected int _movementRemaining;
         protected double _maxCarryWeight => AbilityScores.TotalScores["STR"] * 15;
         protected double _currentWeightCarried
@@ -64,7 +66,6 @@ namespace DungeonCrawler
             _experience = 0;
             hitDie ??= new Die(6);
             _hitDie = hitDie;
-            Hp = 0;
             for (int j = 0; j < Level.Value; j++)
             {
                 Hp += _hitDie.Roll(1, GetModifier("CON"));
@@ -81,10 +82,18 @@ namespace DungeonCrawler
             return $"{Name} lvl {Level.Value} has a hit die of d{_hitDie.NumSides.Value}, and total HP of {Hp}.";
         }
 
+        public string GetHpDescription()
+        {
+            string maxHp = TempHp > 0 ? $"{Hp + TempHp} ({Hp} + {TempHp} temp)" : Hp.ToString();
+            string currentHp = TempHp > 0 ? $"{CurrentHp.Value + TempHp}" : $"{CurrentHp.Value.ToString()}";
+
+            return $"{currentHp} / {maxHp}";
+        }
+        
         public virtual string GetAllStats()
         {
             string output = $"{Name}, lvl {Level.Value} {char.ToUpper(Gender)}\n";
-            output += $"HP: {CurrentHp.Value} / {Hp} AC: {ArmorClass}\n";
+            output += $"HP: {GetHpDescription()} AC: {ArmorClass}\n";
             output += $"{AbilityScores.GetShortDescription()}\n";
             output += $"Inventory: {ListItems()}";
             output += $"Status Effects: {ListStatusEffects()}";
@@ -100,7 +109,7 @@ namespace DungeonCrawler
         {
             if (AbilityScores.BaseScores.ContainsKey(abil))
             {
-                Console.WriteLine($"Rolling {AbilityScores.BaseScores[abil].Name} check for {this.Name}...");
+                Console.WriteLine($"{AbilityScores.BaseScores[abil].Name} check for {this.Name}:");
                 return D20.Roll(1, GetModifier(abil), true);
             }
             else 
@@ -111,7 +120,7 @@ namespace DungeonCrawler
         
         public void InitiativeRoll(int mod = 0)
         {
-            CurrentInitiative = D20.Roll(1, (GetModifier("DEX") + mod));
+            CurrentInitiative = AbilityCheck("DEX");
         }
         
         public virtual Die.Result AttackRoll()
@@ -127,12 +136,27 @@ namespace DungeonCrawler
 
         public void ChangeHp(int amount)
         {
-            CurrentHp.ChangeValue(amount);
-            if (CurrentHp.Value == 0)
+            if (amount < 0) // if less than 0, hp is being decreased
             {
-                IsDead = true;
-                Console.WriteLine($"{Name} has died!");
+                if (TempHp > 0) // if entity has TempHp, reduce TempHp before CurrentHp
+                {
+                    TempHp += amount;
+                    if (TempHp < 0) // if TempHp has been depleted, change CurrentHp
+                    {
+                        amount = TempHp; // amount now equals left over damage not absorbed by TempHp
+                        TempHp = 0;
+                    }
+                    else // if all damage was absorbed by TempHp, remaining damage is 0
+                    {
+                        amount = 0; 
+                    }
+                }
+                else if (TempHp < 0) // reset TempHp back to 0 incase it is less than 0
+                {
+                    TempHp = 0;
+                }
             }
+            CurrentHp.ChangeValue(amount);
         }
         
         public void SetLocation(MapPoint location)
@@ -157,7 +181,7 @@ namespace DungeonCrawler
         public List<IMappable> BaseSearch()
         {
             Console.WriteLine($"{Name} is searching...");
-            int perceptionRoll = D20.Roll(1, GetModifier("WIS"), true);
+            int perceptionRoll = AbilityCheck("WIS");
             int perceptionCheck = perceptionRoll >= PassivePerception ? perceptionRoll : PassivePerception;
             int searchRangeFeet = (perceptionCheck - 8) * 5;
 
@@ -221,30 +245,36 @@ namespace DungeonCrawler
         // =======================================================================================
         // STATUS EFFECT RELATED:
         // =======================================================================================
-        public void ApplyStatusEffect(StatusEffect newStatusEffect)
+        public void AddStatusEffect(StatusEffect statusEffect)
+        {
+            StatusEffects.Add(statusEffect);
+            ApplyStatusEffect(statusEffect);
+        }
+        
+        public void ApplyStatusEffect(StatusEffect statusEffect)
         {
             /// TODO: Figure out how to access properties with private setter
-            PropertyInfo piTargetProp = this.GetType().GetProperty(newStatusEffect.TargetProp, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            PropertyInfo piTargetProp = this.GetType().GetProperty(statusEffect.TargetProp, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             if (piTargetProp.PropertyType == typeof(int))
             {
-                piTargetProp.SetValue(this, (int)piTargetProp.GetValue(this, null) + newStatusEffect.ValueChange);
+                piTargetProp.SetValue(this, (int)piTargetProp.GetValue(this, null) + statusEffect.ValueChange);
             }
             else if (piTargetProp.PropertyType == typeof(Stat))
             {
                 MethodInfo miTargetProp = typeof(Stat).GetMethod("ChangeValue", BindingFlags.Public | BindingFlags.Instance);
-                miTargetProp.Invoke(piTargetProp.GetValue(this), new object[] {newStatusEffect.ValueChange});
+                miTargetProp.Invoke(piTargetProp.GetValue(this), new object[] {statusEffect.ValueChange});
             }
             else if (piTargetProp.PropertyType == typeof(AbilityScores))
             {
                 MethodInfo miTargetProp = typeof(AbilityScores).GetMethod("AddMods", BindingFlags.Public | BindingFlags.Instance);
-                var abilityScoreChange = new Dictionary<string, int>() {{newStatusEffect.TargetedAbilityScore, newStatusEffect.ValueChange}};
+                var abilityScoreChange = new Dictionary<string, int>() {{statusEffect.TargetedAbilityScore, statusEffect.ValueChange}};
                 miTargetProp.Invoke(piTargetProp.GetValue(this), new object[] {AbilityScores.TempMods, abilityScoreChange});
             }
             else
             {
-                throw new InvalidEntityPropertyException($"{newStatusEffect.TargetProp} is not a valid property for {Name}.");
+                throw new InvalidEntityPropertyException($"{statusEffect.TargetProp} is not a valid property for {Name}.");
             }
-            Console.WriteLine($"{Name} is {newStatusEffect.Name}. {Pronouns[2]} {newStatusEffect.TargetProp.FromTitleOrCamelCase()} is {(newStatusEffect.ValueChange >= 0 ? "increased" : "decreased")} by {Math.Abs(newStatusEffect.ValueChange)}.");
+            Console.WriteLine($"{Name} is {statusEffect.Name}. {Pronouns[2]} {statusEffect.TargetProp.FromTitleOrCamelCase()} is {(statusEffect.ValueChange >= 0 ? "increased" : "decreased")} by {Math.Abs(statusEffect.ValueChange)}.");
         }
 
         public void UnapplyStatusEffect(StatusEffect currentStatusEffect)
@@ -348,7 +378,7 @@ namespace DungeonCrawler
         public virtual bool Hide()
         {
             Console.WriteLine($"{Name} is attempting to hide..");
-            HiddenDc = D20.Roll(1, GetModifier("DEX"), true);
+            HiddenDc = AbilityCheck("DEX");
             return true;
         }
         

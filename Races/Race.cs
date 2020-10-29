@@ -14,7 +14,11 @@ namespace DungeonCrawler
 
         protected void checkAndSetMods(string abil1, string abil2)
         {
-            if (NaturalAbilities.Contains(abil1) && NaturalAbilities.Contains(abil2))
+            if (this is Human)
+            {
+                AbilityMods = new Dictionary<string, int>() {{abil1, 1}, {abil2, 1}};
+            }
+            else if (NaturalAbilities.Contains(abil1) && NaturalAbilities.Contains(abil2))
             {
                 AbilityMods = new Dictionary<string, int>() {{abil1, 2}, {abil2, 2}};
             }
