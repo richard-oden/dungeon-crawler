@@ -17,8 +17,10 @@ namespace DungeonCrawler
 
         private bool dash()
         {
-            var dashing = new StatusEffect("dashing", 5, "_baseMovementSpeedFeet", 15, undoWhenFinished: true);
+            var dashing = new StatusEffect("dashing", 5, "_baseMovementSpeed", 15, undoWhenFinished: true);
+            var dashingThisTurn = new StatusEffect("dashing this turn", 0, "_movementRemaining", 15);
             SentientCreature.AddStatusEffect(dashing);
+            SentientCreature.AddStatusEffect(dashingThisTurn);
             Console.WriteLine($"{SentientCreature.Name} is now dashing!");
             return true;
         }

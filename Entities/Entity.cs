@@ -31,9 +31,9 @@ namespace DungeonCrawler
         public int TempHp {get; set;}
         public bool IsDead {get; protected set;} = false;
         public int CurrentInitiative {get; protected set;}
-        protected int _baseMovementSpeedFeet {get; set;} = 20;
-        public int MovementSpeedFeet => _baseMovementSpeedFeet + (GetModifier("DEX") * 5);
-        protected int _movementRemaining;
+        protected int _baseMovementSpeed {get; set;}
+        public int MovementSpeedFeet => _baseMovementSpeed + (GetModifier("DEX") * 5);
+        protected int _movementRemaining {get; set;}
         protected double _maxCarryWeight => AbilityScores.TotalScores["STR"] * 15;
         protected double _currentWeightCarried
         {
@@ -62,6 +62,8 @@ namespace DungeonCrawler
             Gender = gender;
             Team = team;
             AbilityScores = new AbilityScores(abilityScoreValues);
+
+            _baseMovementSpeed = 20;
 
             _experience = 0;
             hitDie ??= new Die(6);
@@ -105,22 +107,25 @@ namespace DungeonCrawler
             return (int)Math.Floor(((double)AbilityScores.TotalScores[abilityScore] - 10.0) / 2.0);
         }
 
-        public int AbilityCheck(string abil)
+        public int AbilityCheck(string abil, bool printOutput = true)
         {
             if (AbilityScores.BaseScores.ContainsKey(abil))
             {
-                Console.WriteLine($"{AbilityScores.BaseScores[abil].Name} check for {this.Name}:");
-                return D20.Roll(1, GetModifier(abil), true);
+                if (printOutput)
+                {
+                    Console.WriteLine($"{AbilityScores.BaseScores[abil].Name} check for {Name}:");
+                }
+                return D20.Roll(1, GetModifier(abil), printOutput);
             }
             else 
             {
-                throw new InvalidAbilityException($"Ability '{abil}' in entity '{this.Name}' is not valid!");
+                throw new InvalidAbilityException($"Ability '{abil}' in entity '{Name}' is not valid!");
             }
         }
         
         public void InitiativeRoll(int mod = 0)
         {
-            CurrentInitiative = AbilityCheck("DEX");
+            CurrentInitiative = AbilityCheck("DEX", false);
         }
         
         public virtual Die.Result AttackRoll()
@@ -253,7 +258,6 @@ namespace DungeonCrawler
         
         public void ApplyStatusEffect(StatusEffect statusEffect)
         {
-            /// TODO: Figure out how to access properties with private setter
             PropertyInfo piTargetProp = this.GetType().GetProperty(statusEffect.TargetProp, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             if (piTargetProp.PropertyType == typeof(int))
             {
@@ -274,7 +278,9 @@ namespace DungeonCrawler
             {
                 throw new InvalidEntityPropertyException($"{statusEffect.TargetProp} is not a valid property for {Name}.");
             }
-            Console.WriteLine($"{Name} is {statusEffect.Name}. {Pronouns[2]} {statusEffect.TargetProp.FromTitleOrCamelCase()} is {(statusEffect.ValueChange >= 0 ? "increased" : "decreased")} by {Math.Abs(statusEffect.ValueChange)}.");
+            string targetPropText = statusEffect.TargetedAbilityScore != null ? statusEffect.TargetedAbilityScore : statusEffect.TargetProp.FromTitleOrCamelCase();
+            string increasedOrDecreased = statusEffect.ValueChange >= 0 ? "increased" : "decreased";
+            Console.WriteLine($"{Name} is {statusEffect.Name}. {Pronouns[2]} {targetPropText} is {increasedOrDecreased} by {Math.Abs(statusEffect.ValueChange)}.");
         }
 
         public void UnapplyStatusEffect(StatusEffect currentStatusEffect)
@@ -309,7 +315,7 @@ namespace DungeonCrawler
         
         public string ListStatusEffects()
         {
-            string list = StatusEffects.Select(sE => sE.Name).FormatToString("and");
+            string list = StatusEffects.Select(sE => $"{sE.Name} ({sE.Duration} turns left)").FormatToString("and");
             return String.IsNullOrEmpty(list) ? "None" : list;
         }
         

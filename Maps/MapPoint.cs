@@ -38,12 +38,12 @@ namespace DungeonCrawler
             return X.GetHashCode() * 31 + Y.GetHashCode();
         }
         
-        public double DistanceTo(int x, int y)
+        public decimal DistanceTo(int x, int y)
         {
-            return Math.Sqrt(Math.Pow(X-x, 2) + Math.Pow(Y-y, 2));
+            return (decimal)Math.Sqrt(Math.Pow(X-x, 2) + Math.Pow(Y-y, 2));
         }
         
-        public double DistanceTo(MapPoint point)
+        public decimal DistanceTo(MapPoint point)
         {
             return DistanceTo(point.X, point.Y);
         }

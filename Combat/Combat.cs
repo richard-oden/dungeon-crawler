@@ -30,6 +30,7 @@ namespace DungeonCrawler
                     if (!StillFighting()) break;
                     Console.WriteLine($"It is {combatant.Name}'s turn.");
                     PressAnyKeyToContinue();
+                    Console.Clear();
                     combatant.TakeTurn(this);
                 }
             }

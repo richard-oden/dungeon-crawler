@@ -11,6 +11,7 @@ namespace DungeonCrawler
         {
             ArmorClassBonus = ac;
             Material = material;
+            AbilityMods = abilityMods;
         }
     }
 }

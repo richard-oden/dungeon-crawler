@@ -34,31 +34,10 @@ namespace DungeonCrawler
             return $"{Name} is a level {Level.Value} {Race.Name} {Caste.Name}. {Pronouns[2]} hit die is a d{_hitDie.NumSides.Value}, and {Pronouns[2].ToLower()} total HP is {Hp}.";
         }
 
-        public override void TakeTurn(Combat combat)
+        
+        private void printActions(List<string> actionsRemaining)
         {
-            var actionsRemaining = new List<string>() {"major", "minor", "move"};
-            _movementRemaining = MovementSpeedFeet;
-            bool turnOver = false;
-            while (!turnOver)
-            {
-                MaintainStatusEffects();
-                TakingTurn = true;
-                // Check if turn is over:
-                if (_movementRemaining <= 0) actionsRemaining.Remove("move");
-                if (actionsRemaining.Count == 0)
-                {
-                    Console.WriteLine($"{Name}'s turn is over because {Pronouns[0].ToLower()} has no actions left.");
-                    PressAnyKeyToContinue();
-                    turnOver = true;
-                }
-
-                Location.Map.PrintMap();
-
-                // Prompt player:
-                string formattedMovement = _movementRemaining != 0 ? $"({_movementRemaining} ft) " : "";
-                Console.WriteLine($"\nEnter an action or type 'pass' to pass your turn. {Name} has a {actionsRemaining.FormatToString("and")} action {formattedMovement}remaining.\n");
-                // List IEntityActions:
-                foreach (var action in _actions) 
+            foreach (var action in _actions) 
                 {
                     if ((action == Caste.Action && CasteActionUses <= 0) || (action == Race.Action && RaceActionUses <= 0)) 
                     {
@@ -71,10 +50,38 @@ namespace DungeonCrawler
                         Console.WriteLine($"- {action.Command} {action.Description} ({action.Type}{usesLeftText})");
                     }
                 }
+        }
+        public override void TakeTurn(Combat combat)
+        {
+            TakingTurn = true;
+            MaintainStatusEffects();
+            var actionsRemaining = new List<string>() {"major", "minor", "move"};
+            _movementRemaining = MovementSpeedFeet;
+            bool turnOver = false;
+            while (!turnOver)
+            {
+                // Check if turn is over:
+                if (_movementRemaining <= 0) actionsRemaining.Remove("move");
+                if (actionsRemaining.Count == 0)
+                {
+                    Console.WriteLine($"{Name}'s turn is over because {Pronouns[0].ToLower()} has no actions left.");
+                    PressAnyKeyToContinue();
+                    turnOver = true;
+                    break;
+                }
+
+                Location.Map.PrintMap();
+
+                // Prompt player:
+                string formattedMovement = _movementRemaining != 0 ? $"({_movementRemaining} ft) " : "";
+                Console.WriteLine($"\nEnter an action or type 'pass' to pass your turn. {Name} has a {actionsRemaining.FormatToString("and")} action {formattedMovement}remaining.\n");
+                // List IEntityActions:
+                printActions(actionsRemaining);
                 Console.WriteLine($"\nTry 'help' for a list of other commands.\n");
 
                 string input = Console.ReadLine().ToLower();
                 // If IEntityAction command, parse input:
+                
                 if (_actions.Any(a => a.Command == input.Split(' ')[0]))
                 {
                     string inputCommand = input.Split(' ')[0];

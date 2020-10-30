@@ -36,22 +36,22 @@ namespace DungeonCrawler
             Console.ResetColor();
             Console.OutputEncoding = Encoding.UTF8;
             Map demoMap = Map.CsvToMap("Maps/CombatDemoMap.csv");
-            // var testSword = new Sword
-            // (
-            //     "Sword", 10, 10, true,
-            //     damageType: "ice"
-            // );
+            var testSword = new Sword
+            (
+                "Sword", 10, 10, true,
+                damageType: "ice"
+            );
 
-            // var testHammer = new Warhammer
-            // (
-            //     "Furious Hammer", 100.0, 36.4, false, 
-            //     abilityMods: new Dictionary<string, int> {{"CON", 2}, {"WIS", -2}}
-            // );
+            var testHammer = new Warhammer
+            (
+                "Furious Hammer", 100.0, 36.4, false, 
+                abilityMods: new Dictionary<string, int> {{"CON", 2}, {"WIS", -2}}
+            );
 
-            // var testTome = new Tome
-            // (
-            //     "Fire Tome", 160, 24, damageType: "fire", damageBonus: 2
-            // );
+            var testTome = new Tome
+            (
+                "Fire Tome", 160, 24, damageType: "fire", damageBonus: 2
+            );
 
             var healthPotion1 = new Consumable
             (
