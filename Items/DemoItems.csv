@@ -1,0 +1,39 @@
+Item Type,Weapon Type,Name,Value,Weight,Two Handed,Attack Bonus,Damage Bonus,Damage Type,Ability Score Bonuses,Description Text
+Weapon,Sword,Verglas Blade,200,25,TRUE,2,2,ice,,A well-crafted longsword that feels cool to the touch.
+Weapon,Tome,Infernal Tome,350,18,,2,2,fire,,An ornately enscribed magic tome. It pulsates with heat.
+Weapon,Warhammer,Thunderous Hammer,210,40,TRUE,2,2,thunder,,"A large warhammer, with glowing thunderbolts sprawling accross its surface."
+Weapon,Bow,Corrosive Bow,190,10,,2,2,acid,,An elven-made bow. It glows an unnatural green color.
+Weapon,Mace,Iron Mace,58,25,TRUE,,,,,An Iron mace. Good for smacking things.
+Weapon,Staff,Wooden Staff,75,12,,,,,,"An arcane staff, made from a twisted piece of magically infused wood."
+Weapon,Axe,Iron Axe,60,28,TRUE,,,,,"You could use this to chop wood, though it might be a little overkill."
+Weapon,Dagger,Iron Dagger,50,4,,,,,,"An iron dagger. If nothing else, it's good for opening letters."
+,,,,,,,,,,
+Item Type,Slot,Name,Value,Weight,Material,Armor Class Bonus,,, Ability Score Bonuses,Description Text
+Armor,Torso,Chainmail Shirt,120,30,chain,1,,,,A shirt made from many interlocking metal rings.
+Armor,Legs,Chainmail Pants,80,28,chain,1,,,,Pants made from many interlocking metal rings. A little jingly when you walk.
+Armor,Torso,Mage's Cloak,200,4,cloth,0,,,DEX 3,A light cloak inscribed with shimmering arcane runes.
+Armor,Head,Plated Helm,60,8,plate,1,,,,A heavy plate metal helmet. Safety first!
+Armor,Torso,Plated Chestpiece,210,35,plate,2,,,,"A heavy plate metal chestpiece. A little stiff, but very safe!"
+Armor,Legs,Plated Greaves,100,33,plate,1,,,,Heavy plate greaves.
+Armor,Feet,Plated Boots,50,8,plate,1,,,,Heavy plate boots.
+Armor,Torso,Leather Vest,50,8,leather,1,,,,A leather vest. Defensive AND stylish!
+Armor,Legs,Leather Pants,40,4,leather,1,,,,Leather pants.
+Armor,Legs,Leather Boots,20,2,leather,1,,,,Leather boots.
+Armor,Torso,Chestplate of the Champion,400,35,plate,2,,,STR 2,A battered and dented plated chestpiece. You can sense its been though thousands of battles.
+Armor,Hands,Gauntlets of Divine Invocation,250,30,chain,1,,,WIS 2,"A pair of chainmail gloves, decorated with symbols of your god."
+Armor,Feet,Shoes of Deft Movement,180,2,leather,1,,,DEX 2,"A pair of lightweight, aerodynamic leather shoes."
+Armor,Head,Hat of Intellect,180,1,cloth,0,,,INT 2,A wizard's hat. Wearing it makes you feel a little smarter.
+,,,,,,,,,,
+Item Type,Status Effects,Name,Value,Weight,,,,,,Description Text
+Consumable,healing (minor),Minor Health Potion,25,1,,,,,,A small vial of bubbling red liquid.
+Consumable,healing (major),Major Health Potion,50,1,,,,,,A large vial of bubbling red liquid.
+Consumable,invisible,Invisibility Potion,100,1,,,,,,A bottle of crystal clear liquid.
+Consumable,toughened,Ironskin Potion,100,1,,,,,,A bottle of what looks like liquid mercury.
+,,,,,,,,,,
+Item Type,,Name,Value,Weight,,,,,,Description Text
+Misc,,Humanoid Skull,0,2,,,,,,It's hard to tell what race this could have come from.
+Misc,,Large Femur,0,2,,,,,,It may have belonged to a giant.
+Misc,,Tattered Parchment,1,1,,,,,,It appears to be very old. You can only make out fragments of words.
+Misc,,Scraps of Leather,1,1,,,,,,Looks like it may have been an old bag or piece of armor.
+Misc,,Wooden Figurine,20,1,,,,,,Kind of creepy. You don't recognize the figure it's depicting.
+Misc,,Broken Arrow,0,0,,,,,,It seems to have broken upon impact.
