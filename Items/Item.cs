@@ -15,15 +15,24 @@ namespace DungeonCrawler
         public Dictionary<string, int> AbilityMods {get; protected set;}
         public MapPoint Location {get; protected set;}
         public char Symbol {get; protected set;} = Symbols.Item;
+        public string DescriptionText {get; protected set;}
         public string Description {get; protected set;}
 
-        public Item(string name, double value, double weight, Dictionary<string, int> abilityMods = null, MapPoint location = null)
+        public Item(string name, double value, double weight, 
+                    Dictionary<string, int> abilityMods = null, string descriptionText = null, MapPoint location = null)
         {
             Name = name;
             Value = value;
             Weight = weight;
             abilityMods ??= new Dictionary<string, int>();
             AbilityMods = abilityMods;
+            DescriptionText = descriptionText;
+            Description = DescriptionText + $" It weighs roughly {Weight}lbs and may be worth around {Value} gold.";
+            if (AbilityMods != null)
+            {
+                string abilModsString = AbilityMods.Select(aM => $"{aM.Key} + {aM.Value}").FormatToString("and");
+                descriptionText += $" It gives the following ability score bonuses when held: {abilModsString}.";
+            }
             Location = location;
         }
 
@@ -32,13 +41,7 @@ namespace DungeonCrawler
             Location = location;
         }
 
-        public void SetDescription(string description)
-        {
-            Description = description;
-        }
-
-        
-        public static Dictionary<string, int> ToItemAbilityMods(string abilityMods)
+        private static Dictionary<string, int> parseItemAbilityMods(string abilityMods)
         {
             var output = new Dictionary<string, int>();
             var abilityModsArray = abilityMods.Split(' ');
@@ -64,43 +67,48 @@ namespace DungeonCrawler
                     {
                         continue;
                     }
-                    Item item;
+                    var baseItem = new Item(
+                        name: values[2], 
+                        value: Double.Parse(values[3]),
+                        weight: Double.Parse(values[4]),
+                        abilityMods: String.IsNullOrEmpty(values[8]) ? null : parseItemAbilityMods(values[8]),
+                        descriptionText: values[9]
+                    );
+
                     if (values[0] == "Weapon")
                     {
-                        // object[] paramArray = values.Where(v => Array.IndexOf(values, v) != 0 &&
-                        //                                     !String.IsNullOrEmpty(v))
-                        //                             .
-                        // Type weaponType = Type.GetType(values[1]);
-                        // object weapon = Activator.CreateInstance(weaponType, new object[] 
-                        // {
-                        //     attackBonus: values[4], 
-                        //     damageBonus: values[5], 
-                        //     damageType: values[6]
-                        // });
+                        Items.Add(new Weapon(
+                            baseItem: baseItem,
+                            type: values[1].ToLower(),
+                            attackBonus: String.IsNullOrEmpty(values[5]) ? 0 : int.Parse(values[5]),
+                            damageBonus: String.IsNullOrEmpty(values[6]) ? 0 : int.Parse(values[6]),
+                            damageType: values[7]
+                        ));
                     }
                     else if (values[0] == "Armor")
                     {
-                        item = new Armor(slot: values[1],
-                            name: values[2], 
-                            value: Double.Parse(values[3]), 
-                            weight: Double.Parse(values[4]), 
-                            ac: Int32.Parse(values[6]),
+                        Items.Add(new Armor(
+                            baseItem: baseItem,
+                            slot: values[1].ToLower(),
                             material: values[5],
-                            abilityMods: (String.IsNullOrEmpty(values[9]) ? null : ToItemAbilityMods(values[9])));
+                            ac: int.Parse(values[6])
+                        ));
                     }
                     else if (values[0] == "Consumable")
                     {
-
+                        Items.Add(new Consumable(
+                            baseItem: baseItem,
+                            StatusEffect.ParseStatusEffects(values[1])
+                        ));
                     }
                     else if (values[0] == "Misc")
                     {
-
+                        Items.Add(baseItem);
                     }
                     else
                     {
                         throw new Exception($"Unexpected item type '{values[0]}'!");
                     }
-                    Items.Add(item);
                 }
             }
             return Items;

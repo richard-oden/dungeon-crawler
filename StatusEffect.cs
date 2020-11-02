@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace DungeonCrawler
@@ -26,6 +27,25 @@ namespace DungeonCrawler
         public void DecrementDuration()
         {
             if (Duration > 0) Duration -= 1;
+        }
+
+        public static List<StatusEffect> ParseStatusEffects(string source)
+        {
+            var sourceArray = source.Split(' ');
+            var output = new List<StatusEffect>();
+            foreach(var se in sourceArray)
+            {
+                PropertyInfo piStatusEffect = typeof(StatusEffects).GetProperty(se);
+                if (piStatusEffect.PropertyType == typeof(StatusEffect))
+                {
+                    output.Add((StatusEffect)piStatusEffect.GetValue(null, null));
+                }
+                else
+                {
+                    throw new System.Exception($"{se} is not a valid statusEffect!");
+                }
+            }
+            return output;
         }
     }
 }

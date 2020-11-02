@@ -13,5 +13,9 @@ namespace DungeonCrawler
         {
             StatusEffects = statusEffects;
         }
+
+        public Consumable(Item baseItem, List<StatusEffect> statusEffects) :
+            this(baseItem.Name, baseItem.Value, baseItem.Weight, statusEffects)
+        {}
     }
 }

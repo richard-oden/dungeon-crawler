@@ -10,6 +10,39 @@ namespace DungeonCrawler
         public Caste Caste {get; protected set;}
         public int RaceActionUses {get; protected set;} = 2;
         public int CasteActionUses {get; protected set;} = 3;
+        public override string Description
+        {
+            get
+            {
+                var description = $"{Name} is {Race.Name.IndefiniteArticle().ToLower()} {Race.Name} {Caste.Name}.";
+
+                string hpString;
+                if (CurrentHp.Value == Hp) hpString = "uninjured";
+                else if (CurrentHp.Value > Hp * .75) hpString = "mildly injured";
+                else if (CurrentHp.Value > Hp * .5) hpString = "fairly injured";
+                else if (CurrentHp.Value > Hp * .25) hpString = "greatly injured";
+                else if (CurrentHp.Value > 0) hpString = "near death";
+                else hpString = "dead";
+                description += $" {Pronouns[0]} appears {hpString}.";
+
+                var weaponsList = Items.Where(i => i is Weapon).ToList(); 
+                if (weaponsList.Count > 0)
+                {
+                    var weaponsString = weaponsList.Select(w => 
+                        $"{w.Name.IndefiniteArticle().ToLower()} {w.Name}").FormatToString("and").ToLower();
+                    description += $" {Pronouns[0]} is wielding {weaponsString}.";
+                }
+                var armorList = Items.Where(i => i is Armor).ToList(); 
+                if (weaponsList.Count > 0)
+                {
+                    var armorString = armorList.Select(w => 
+                        $"{w.Name.IndefiniteArticle().ToLower()} {w.Name}").FormatToString("and").ToLower();
+                    description += $" {Pronouns[0]} is wearing {armorString}.";
+                }
+
+                return description;
+            }
+        }
         public override int ArmorClass
         {
             get
@@ -36,8 +69,9 @@ namespace DungeonCrawler
                 }
             }
         }       
-        public SentientCreature(string name, int level, char gender, Race race, Caste caste, int team, int[] abilityScoreValues = null, MapPoint location = null) : 
-            base(name, level, gender, team, abilityScoreValues, null, location)
+        public SentientCreature(string name, int level, char gender, Race race, Caste caste, int team, 
+                int[] abilityScoreValues = null, MapPoint location = null, List<Item> items = null) : 
+            base(name, level, gender, team, abilityScoreValues, null, location, items)
         {
             Race = race;
             Race.SentientCreature = this;
@@ -45,11 +79,6 @@ namespace DungeonCrawler
             Caste.SentientCreature = this;
             _hitDie = race.HitDie;
             AbilityScores.AddMods(AbilityScores.RacialMods, Race.AbilityMods);
-        }
-
-        public override string GetDescription()
-        {
-            return $"{Name} is a level {Level.Value} {Race.Name} {Caste.Name}. {Pronouns[2]} hit die is a d{_hitDie.NumSides.Value}, and {Pronouns[2].ToLower()} total HP is {Hp}.";
         }
 
         public override string GetAllStats()

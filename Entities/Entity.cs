@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using static DungeonCrawler.Dice;
 using static DungeonCrawler.ExtensionsAndHelpers;
+using System.IO;
 
 namespace DungeonCrawler
 {
@@ -24,14 +25,15 @@ namespace DungeonCrawler
         public Stat Level {get; protected set;} = new Stat("Level", 1, 100);
         protected int _experience {get; set;}
         public AbilityScores AbilityScores {get; protected set;}
-        public virtual int ArmorClass => 10 + (AbilityScores.TotalScores["CON"] > AbilityScores.TotalScores["DEX"] ? GetModifier("CON") : GetModifier("DEX"));
+        protected int _baseArmorClass {get; set;} = 10;
+        public virtual int ArmorClass => _baseArmorClass + (AbilityScores.TotalScores["CON"] > AbilityScores.TotalScores["DEX"] ? GetModifier("CON") : GetModifier("DEX"));
         protected Die _hitDie;
         public int Hp {get; set;} = 0;
         public Stat CurrentHp {get; set;}
         public int TempHp {get; set;}
         public bool IsDead {get; protected set;} = false;
         public int CurrentInitiative {get; protected set;}
-        protected int _baseMovementSpeed {get; set;}
+        protected int _baseMovementSpeed {get; set;} = 20;
         public int MovementSpeedFeet => _baseMovementSpeed + (GetModifier("DEX") * 5);
         protected int _movementRemaining {get; set;}
         protected double _maxCarryWeight => AbilityScores.TotalScores["STR"] * 15;
@@ -55,7 +57,9 @@ namespace DungeonCrawler
         public bool TakingTurn {get; protected set;}
         public int Team {get; protected set;} // represents who this entity is allied with in combat
         
-        public Entity(string name, int level, char gender, int team, int[] abilityScoreValues = null, Die hitDie = null, MapPoint location = null)
+        public Entity(string name, int level, char gender, int team, 
+                int[] abilityScoreValues = null, Die hitDie = null, MapPoint location = null,
+                List<Item> items = null)
         {
             Name = name;
             Level.SetValue(level);
@@ -77,11 +81,8 @@ namespace DungeonCrawler
             PassivePerception = AbilityScores.TotalScores["WIS"];
 
             Location = location;
-        }
 
-        public virtual string GetDescription()
-        {
-            return $"{Name} lvl {Level.Value} has a hit die of d{_hitDie.NumSides.Value}, and total HP of {Hp}.";
+            Items = items;
         }
 
         public string GetHpDescription()
@@ -522,6 +523,85 @@ namespace DungeonCrawler
                 Console.WriteLine($"Target '{moveInput}' is not valid.");
             }
             return _movementRemaining <= 0;
+        }
+
+        private static int[] parseAbilityScoreValues(string source)
+        {
+            return source.Split(' ').Select(i => int.Parse(i)).ToArray();
+        }
+
+        private static Race parseRace(string race, string abilMods)
+        {
+            var abilModsArray = abilMods.Split(' ');
+            if (race == "Human") return new Human(abilModsArray[0], abilModsArray[1]);
+            else if (race == "Elf") return new Elf(abilModsArray[0], abilModsArray[1]);
+            else if (race == "Dwarf") return new Dwarf(abilModsArray[0], abilModsArray[1]);
+            else if (race == "Halfling") return new Halfling(abilModsArray[0], abilModsArray[1]);
+            else throw new Exception($"'{race}' is not a valid race.");
+        }
+
+        private static Caste parseCaste(string caste)
+        {
+            if (caste == "Rogue") return new Rogue();
+            else if (caste == "Cleric") return new Cleric();
+            else if (caste == "Fighter") return new Fighter();
+            else if (caste == "Wizard") return new Wizard();
+            else throw new Exception($"'{caste}' is not a valid caste.");
+        }
+
+        private static List<Item> parseItems(string itemNames, List<Item> itemList)
+        {
+            var output = new List<Item>();
+            var itemNamesArray = itemNames.Split('/');
+            foreach (var itemName in itemNamesArray)
+            {
+                var itemToAdd = itemList.FirstOrDefault(i => i.Name == itemName);
+                if (itemToAdd != null)
+                {
+                    output.Add(itemToAdd);
+                    itemList.Remove(itemToAdd);
+                }
+                else
+                {
+                    throw new Exception($"Item '{itemName}' could not be found!");
+                }
+            }
+            return output;
+        }
+
+        public static List<Entity> ImportFromCsv(string csvFileName, List<Item> itemList)
+        {
+            string currentDirectory = Directory.GetCurrentDirectory();
+            var fileName = Path.Combine(currentDirectory, csvFileName);
+            var Entities = new List<Entity>();
+            using (var reader = new StreamReader(fileName)) // using directive closes streamreader after finished
+            {
+                string line = "";
+                reader.ReadLine(); // consumes first line, which only contains headings
+                while((line = reader.ReadLine()) != null) // while the line is not null
+                {
+                    string[] values = line.Split(',');
+                    if (values[0] == "Entity Type" || String.IsNullOrEmpty(values[0]))
+                    {
+                        continue;
+                    }
+
+                    if (values[0] == "Player")
+                    {
+                        Entities.Add(new Player(
+                            name: values[1], level: int.Parse(values[2]), gender: char.Parse(values[3]),
+                            abilityScoreValues: parseAbilityScoreValues(values[4]), 
+                            race: parseRace(values[5], values[6]), caste: parseCaste(values[7]), 
+                            team: int.Parse(values[8]), items: parseItems(values[9], itemList)
+                        ));
+                    }
+                    else
+                    {
+                        throw new Exception($"Unexpected entity type '{values[0]}'!");
+                    }
+                }
+            }
+            return Entities;
         }
     }
 }

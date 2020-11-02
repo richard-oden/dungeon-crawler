@@ -24,7 +24,7 @@ namespace DungeonCrawler
             Objects = new List<IMappable>();
         }
 
-        public static Map CsvToMap(string csvFileName)
+        public static Map CsvToMap(string csvFileName, List<Item> itemList, List<Entity> entityList)
         {
             string currentDirectory = Directory.GetCurrentDirectory();
             var fileName = Path.Combine(currentDirectory, csvFileName);
@@ -43,12 +43,32 @@ namespace DungeonCrawler
                         newMap.Width = int.Parse(values[3]);
                         newMap.Height = int.Parse(values[4]);
                     }
+
                     string locationType = values[0];
                     int x = int.Parse(values[1]);
                     int y = int.Parse(values[2]);
                     if (locationType == "Wall")
                     {
                         mapObjects.Add(new Wall(new MapPoint(x, y, newMap)));
+                    }
+                    else if (locationType.Split(' ')[0] == "Spawn")
+                    {
+                        string objectToSpawn = locationType.Split(' ')[1]; 
+                        if (objectToSpawn == "Item" && itemList.Count > 0)
+                        {
+                            Item randomItem = itemList.RandomElement();
+                            itemList.Remove(randomItem);
+                            randomItem.SetLocation(new MapPoint(x, y, newMap));
+                            newMap.Objects.Add(randomItem);
+                        }
+                        else if (objectToSpawn == "Player" && entityList.Count > 0)
+                        {
+                            var playerList = (from e in entityList where e is Player select (Player)e).ToList();
+                            Player randomPlayer = playerList.RandomElement();
+                            entityList.Remove(randomPlayer);
+                            randomPlayer.SetLocation(new MapPoint(x, y, newMap));
+                            newMap.Objects.Add(randomPlayer);
+                        }
                     }
                     lineNumber++;
                 }

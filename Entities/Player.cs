@@ -11,8 +11,9 @@ namespace DungeonCrawler
         public override char Symbol => IsDead ? Symbols.Dead : Symbols.Player;
         private List<IEntityAction> _actions;
 
-        public Player(string name, int level, char gender, int[] abilityScoreValues, Race race, Caste caste, int team = 0, MapPoint location = null) : 
-        base(name, level, gender, race, caste, team, abilityScoreValues, location)
+        public Player(string name, int level, char gender, int[] abilityScoreValues, 
+                Race race, Caste caste, int team = 0, MapPoint location = null, List<Item> items = null) : 
+        base(name, level, gender, race, caste, team, abilityScoreValues, location, items)
         {
             Team = team;
             _actions = new List<IEntityAction>
@@ -28,12 +29,6 @@ namespace DungeonCrawler
                 Race.Action
             };
         }
-
-        public override string GetDescription()
-        {
-            return $"{Name} is a level {Level.Value} {Race.Name} {Caste.Name}. {Pronouns[2]} hit die is a d{_hitDie.NumSides.Value}, and {Pronouns[2].ToLower()} total HP is {Hp}.";
-        }
-
         
         private void printActions(List<string> actionsRemaining)
         {
@@ -50,6 +45,25 @@ namespace DungeonCrawler
                         Console.WriteLine($"- {action.Command} {action.Description} ({action.Type}{usesLeftText})");
                     }
                 }
+        }  
+        private void describe(string targetName)
+        {
+            var allHeldItems = new List<Item>();
+            foreach(var entity in (from o in Location.Map.Objects where o is Entity select (Entity)o))
+            {
+                allHeldItems.AddRange(entity.Items);
+            }
+            var possibleTargets = Location.Map.Objects.Concat(allHeldItems).Where(o => o is INamed);
+            IMappable target = possibleTargets.FirstOrDefault(t => 
+                t is IDescribable && (t as INamed).Name.ToLower() == targetName.ToLower());
+            if (target != null)
+            {
+                Console.WriteLine((target as IDescribable).Description);
+            }
+            else
+            {
+                Console.WriteLine($"{targetName} could not be found.");
+            }
         }
         public override void TakeTurn(Combat combat)
         {
@@ -130,6 +144,11 @@ namespace DungeonCrawler
                     Console.WriteLine(GetAllStats());
                     PressAnyKeyToContinue();
                 }
+                else if (input.Split(' ')[0] == "describe")
+                {
+                    describe(string.Join(' ', input.Split(' ').Skip(1)));
+                    PressAnyKeyToContinue();
+                }
                 else if (input == "order")
                 {
                     Console.WriteLine(combat.GetInitiativeOrder());
@@ -138,6 +157,7 @@ namespace DungeonCrawler
                 else if (input == "help")
                 {
                     Console.WriteLine($"- stats - List {Name}'s stats.");
+                    Console.WriteLine($"- describe [target name] - Describe an item or creature.");
                     Console.WriteLine($"- order - Show current initiative order.");
                     PressAnyKeyToContinue();
                 }
