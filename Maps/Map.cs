@@ -105,18 +105,14 @@ namespace DungeonCrawler
 
         public void AddObject(IMappable obj)
         {
-            List<IMappable> tempObjects = Objects;
-            tempObjects.Add(obj);
-            validateObjects(tempObjects);
             Objects.Add(obj);
+            validateObjects(Objects);
         }
 
         public void AddObjects(List<IMappable> objects)
         {
-            List<IMappable> tempObjects = Objects;
-            tempObjects = tempObjects.Concat(objects).ToList();
-            validateObjects(tempObjects);
-            Objects = tempObjects;
+            Objects.AddRange(objects);
+            validateObjects(Objects);
         }
 
         public void RemoveObject(IMappable obj)

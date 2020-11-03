@@ -31,7 +31,7 @@ namespace DungeonCrawler
                 {
                     if (targetWeapon != null)
                     {
-                        target.DropItem(targetWeapon.Name);
+                        target.DropItem(targetWeapon.Name.ToLower());
                         Console.WriteLine($"{SentientCreature.Name} disarmed {target.Name}, causing them to drop their {targetWeapon.Name}!");
                     }
                     else

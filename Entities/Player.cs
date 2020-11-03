@@ -134,7 +134,7 @@ namespace DungeonCrawler
                     }
                     else
                     {
-                        Console.WriteLine($"{Name} has already expended their uses of {inputAction.Command}.");
+                        Console.WriteLine($"{Name} has already expended {Pronouns[2]} uses of {inputAction.Command}.");
                         PressAnyKeyToContinue();
                     }
                 }

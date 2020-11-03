@@ -28,10 +28,13 @@ namespace DungeonCrawler
                 foreach (Entity combatant in Combatants)
                 {
                     if (!StillFighting()) break;
-                    Console.WriteLine($"It is {combatant.Name}'s turn.");
-                    PressAnyKeyToContinue();
-                    Console.Clear();
-                    combatant.TakeTurn(this);
+                    else if (!combatant.IsDead)
+                    {
+                        Console.WriteLine($"It is {combatant.Name}'s turn.");
+                        PressAnyKeyToContinue();
+                        Console.Clear();
+                        combatant.TakeTurn(this);
+                    }
                 }
             }
         }

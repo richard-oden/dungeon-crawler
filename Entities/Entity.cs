@@ -31,7 +31,7 @@ namespace DungeonCrawler
         public int Hp {get; set;} = 0;
         public Stat CurrentHp {get; set;}
         public int TempHp {get; set;}
-        public bool IsDead {get; protected set;} = false;
+        public bool IsDead => CurrentHp.Value <= 0;
         public int CurrentInitiative {get; protected set;}
         protected int _baseMovementSpeed {get; set;} = 20;
         public int MovementSpeedFeet => _baseMovementSpeed + (GetModifier("DEX") * 5);
@@ -416,12 +416,14 @@ namespace DungeonCrawler
             var foundItem = Items.FirstOrDefault(i => i.Name.ToLower() == itemName);
             if (foundItem != null)
             {
+                var adjacentCoordinates = Location.GetAdjacentCoordinates();
                 var adjacentObjects = Location.GetObjectsWithinRange(1).Where(o => o != this).ToArray();
                 if (adjacentObjects.Length < 8)
                 {
                     if (RemoveItem(foundItem))
                     {
                         int[] openSpace = Location.Map.GetOpenSpaces(Location.GetAdjacentCoordinates()).RandomElement();
+
                         foundItem.SetLocation(new MapPoint(openSpace[0], openSpace[1], Location.Map));
                         Location.Map.AddObject(foundItem);
                         Console.WriteLine($"{Name} dropped the {itemName}.");

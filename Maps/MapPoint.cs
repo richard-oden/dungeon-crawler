@@ -60,6 +60,18 @@ namespace DungeonCrawler
 
         public List<IMappable> GetObjectsWithinRange(int range)
         {
+            if (range == 1)
+            {
+                var adjacentObjects = new List<IMappable>();
+                foreach (var coord in GetAdjacentCoordinates())
+                {
+                    var adjacentObject = Map.Objects.SingleOrDefault(o => 
+                        o.Location.X == coord[0] && o.Location.Y == coord[1] &&
+                        o.Location != this);
+                    if (adjacentObject != null) adjacentObjects.Add(adjacentObject);
+                }
+                return adjacentObjects;
+            }
             return Map.Objects.Where(o => InRangeOf(o.Location, range)).ToList();
         }
 
@@ -70,7 +82,7 @@ namespace DungeonCrawler
             {
                 for (int x = -1; x <= 1; x++)
                 {
-                    if (x != 0 && y != 0) output.Add(new int[]{X+x, Y+y});
+                    if (x != 0 || y != 0) output.Add(new int[]{X+x, Y+y});
                 }
             }
             return output;
