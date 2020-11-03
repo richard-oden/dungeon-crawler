@@ -62,7 +62,7 @@ namespace DungeonCrawler
                 List<Item> items = null)
         {
             Name = name;
-            Level.SetValue(level);
+            Level.SetValue(level, true);
             Gender = gender;
             Team = team;
             AbilityScores = new AbilityScores(abilityScoreValues);
@@ -162,7 +162,7 @@ namespace DungeonCrawler
                     TempHp = 0;
                 }
             }
-            CurrentHp.ChangeValue(amount);
+            CurrentHp.ChangeValue(amount, false);
         }
         
         public void SetLocation(MapPoint location)
@@ -353,6 +353,7 @@ namespace DungeonCrawler
                                 var damageResult = DamageRoll(crit);
                                 Console.WriteLine($"{target.Name} takes {damageResult} points of damage!");
                                 target.ChangeHp(damageResult*-1);
+                                if (target.IsDead) Console.WriteLine($"{target.Name} has succumbed to their injuries!");
                             }
                             else
                             {

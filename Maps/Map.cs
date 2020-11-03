@@ -155,17 +155,13 @@ namespace DungeonCrawler
                     var thisObject = Objects.FirstOrDefault(o => o.Location.X == x && o.Location.Y == y);
                     if (thisObject != null)
                     {
-                        if (thisObject is Entity)
+                        if (thisObject is Entity || thisObject is Item)
                         {
-                            var thisEntity = (Entity)thisObject;
-                            if (thisEntity.TakingTurn)
+                            consoleColor = White;
+                            if ((thisObject is Entity) && (thisObject as Entity).TakingTurn)
                             {
                                 consoleColor = DarkBlue;
                             }
-                        }
-                        else if (thisObject is Item)
-                        {
-                            consoleColor = White;
                         }
                         Console.ForegroundColor = consoleColor;
                         Console.Write(thisObject.Symbol + " ");

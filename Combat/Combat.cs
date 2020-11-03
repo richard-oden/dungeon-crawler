@@ -21,14 +21,20 @@ namespace DungeonCrawler
 
             Console.WriteLine("Combat has begun! Current initiative order:");
             Console.WriteLine(GetInitiativeOrder());
-            bool fighting = true;
-            while (fighting)
+            while (true)
             {
-                fighting = StillFighting();
                 foreach (Entity combatant in Combatants)
                 {
-                    if (!StillFighting()) break;
-                    else if (!combatant.IsDead)
+                    if (!StillFighting()) 
+                    {
+                        break;
+                    }
+                    else if (combatant.IsDead)
+                    {
+                        Console.WriteLine($"{combatant.Name} cannot take their turn because they are dead.");
+                        PressAnyKeyToContinue();
+                    }
+                    else 
                     {
                         Console.WriteLine($"It is {combatant.Name}'s turn.");
                         PressAnyKeyToContinue();
@@ -52,9 +58,11 @@ namespace DungeonCrawler
         public bool StillFighting()
         {
             // Check if only one team remains:
-            if (Combatants.Where(c => !c.IsDead).All(c => c.Team == Combatants[0].Team))
+            var remainingCombatants = Combatants.Where(c => !c.IsDead);
+            var remainingTeams = remainingCombatants.GroupBy(c => c.Team).ToList();
+            if (remainingTeams.Count == 1)
             {
-                var winner = Combatants.Where(c => !c.IsDead).Select(c => c.Name).FormatToString("and");
+                var winner = remainingTeams[0].Select(c => c.Name).FormatToString("and");
                 Console.WriteLine($"The fight is over! {winner} win(s)!");
                 return false;
             }

@@ -10,7 +10,7 @@ namespace DungeonCrawler
 
         public Die(int numSides)
         {
-            NumSides.SetValue(numSides);
+            NumSides.SetValue(numSides, true);
         }
 
         public int Roll()

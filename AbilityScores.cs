@@ -38,14 +38,14 @@ namespace DungeonCrawler
         {
             if (scores == null)
             {
-                foreach (var score in BaseScores) score.Value.SetValue(10);
+                foreach (var score in BaseScores) score.Value.SetValue(10, false);
             }
             else
             {
                 int i = 0;
                 foreach (var score in BaseScores)
                 {
-                    score.Value.SetValue(scores[i]);
+                    score.Value.SetValue(scores[i], true);
                     i++;
                 }
             }

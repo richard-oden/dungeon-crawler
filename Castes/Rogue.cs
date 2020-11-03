@@ -32,7 +32,8 @@ namespace DungeonCrawler
                     {
                         int damage = Dice.D6.Roll(4, SentientCreature.GetModifier("DEX"), true);
                         Console.WriteLine($"{SentientCreature.Name} struck {target.Name} from the shadows, dealing an additional {damage} points of damage!");
-                        target.CurrentHp.ChangeValue(damage*-1);
+                        target.CurrentHp.ChangeValue(damage*-1, false);
+                        if (target.IsDead) Console.WriteLine($"{target.Name} was silently killed by {SentientCreature.Name}!");
                     }
                     else
                     {

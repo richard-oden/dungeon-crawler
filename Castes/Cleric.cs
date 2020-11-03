@@ -20,7 +20,7 @@ namespace DungeonCrawler
         {
             Console.WriteLine($"{SentientCreature.Name} is saying a prayer...");
             int roll = Dice.D8.Roll(1, SentientCreature.GetModifier("WIS"), true);
-            SentientCreature.CurrentHp.ChangeValue(roll);
+            SentientCreature.CurrentHp.ChangeValue(roll, false);
             Console.WriteLine($"{SentientCreature.Pronouns[0]} gained {roll} hp!");
             return true;
         }

@@ -1,5 +1,5 @@
 Entity Type,Name,Level,Gender,Ability Scores,Race,Race Abilities,Caste,Team,Items
-Player,Dyfena,4,f,13 14 12 10 15 8,Human,STR WIS,Cleric,0,Iron Mace/Chainmail Shirt/Chainmail Pants/Minor Health Potion
-Player,Eldfar,4,m,8 13 14 15 12 10,Elf,INT WIS,Wizard,1,Wooden Staff/Mage's Cloak/Minor Health Potion
-Player,Stinthad,4,m,15 14 13 12 10 8,Dwarf,STR CON,Fighter,2,Iron Axe/Plated Helm/Plated Chestpiece/Plated Greaves/Plated Boots/Minor Health Potion
-Player,Maerabel,4,f,13 14 15 10 8 12,Halfling,DEX CHA,Rogue,3,Iron Dagger/Iron Dagger/Leather Vest/Leather Pants/Leather Boots/Minor Health Potion
+Player,Dyfena,1,f,13 14 12 10 15 8,Human,STR WIS,Cleric,0,Iron Mace/Chainmail Shirt/Chainmail Pants/Minor Health Potion
+Player,Eldfar,1,m,8 13 14 15 12 10,Elf,INT WIS,Wizard,1,Wooden Staff/Mage's Cloak/Minor Health Potion
+Player,Stinthad,1,m,15 14 13 12 10 8,Dwarf,STR CON,Fighter,2,Iron Axe/Plated Helm/Plated Chestpiece/Plated Greaves/Plated Boots/Minor Health Potion
+Player,Maerabel,1,f,13 14 15 10 8 12,Halfling,DEX CHA,Rogue,3,Iron Dagger/Iron Dagger/Leather Vest/Leather Pants/Leather Boots/Minor Health Potion

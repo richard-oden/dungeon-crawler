@@ -65,6 +65,24 @@ namespace DungeonCrawler
                 Console.WriteLine($"{targetName} could not be found.");
             }
         }
+        private void showLegend()
+        {
+            Console.WriteLine("Map Legend:");
+            Console.WriteLine($"{Symbols.Player}  - player character");
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Console.Write(Symbols.Player);
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine($"  - player character who is taking their turn");
+            Console.Write(Symbols.Dead);
+            Console.WriteLine("  - dead body");
+            Console.WriteLine($"{Symbols.Item}  - item that may be picked up");
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.Write(Symbols.Barrier);
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("  - wall or other barrier");
+            Console.ResetColor();
+            
+        }
         public override void TakeTurn(Combat combat)
         {
             TakingTurn = true;
@@ -74,9 +92,16 @@ namespace DungeonCrawler
             bool turnOver = false;
             while (!turnOver)
             {
-                // Check if turn is over:
                 if (_movementRemaining <= 0) actionsRemaining.Remove("move");
-                if (actionsRemaining.Count == 0)
+                // Check if turn is over:
+                if (IsDead)
+                {
+                    Console.WriteLine($"{Name}'s turn is over because {Pronouns[0].ToLower()} has died!");
+                    PressAnyKeyToContinue();
+                    turnOver = true;
+                    break;
+                }
+                else if (actionsRemaining.Count == 0)
                 {
                     Console.WriteLine($"{Name}'s turn is over because {Pronouns[0].ToLower()} has no actions left.");
                     PressAnyKeyToContinue();
@@ -88,7 +113,7 @@ namespace DungeonCrawler
 
                 // Prompt player:
                 string formattedMovement = _movementRemaining != 0 ? $"({_movementRemaining} ft) " : "";
-                Console.WriteLine($"\nEnter an action or type 'pass' to pass your turn. {Name} has a {actionsRemaining.FormatToString("and")} action {formattedMovement}remaining.\n");
+                Console.WriteLine($"\n{Name}'s turn: Enter an action or type 'pass' to pass your turn. {Name} has a {actionsRemaining.FormatToString("and")} action {formattedMovement}remaining.\n");
                 // List IEntityActions:
                 printActions(actionsRemaining);
                 Console.WriteLine($"\nTry 'help' for a list of other commands.\n");
@@ -154,11 +179,17 @@ namespace DungeonCrawler
                     Console.WriteLine(combat.GetInitiativeOrder());
                     PressAnyKeyToContinue();
                 }
+                else if (input == "legend")
+                {
+                    showLegend();
+                    PressAnyKeyToContinue();
+                }
                 else if (input == "help")
                 {
                     Console.WriteLine($"- stats - List {Name}'s stats.");
-                    Console.WriteLine($"- describe [target name] - Describe an item or creature.");
-                    Console.WriteLine($"- order - Show current initiative order.");
+                    Console.WriteLine("- describe [target name] - Describe an item or creature.");
+                    Console.WriteLine("- order - Show current initiative order.");
+                    Console.WriteLine("- legend - Show map legend.");
                     PressAnyKeyToContinue();
                 }
                 else if (input == "pass")
