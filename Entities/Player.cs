@@ -10,6 +10,7 @@ namespace DungeonCrawler
     {
         public override char Symbol => IsDead ? Symbols.Dead : Symbols.Player;
         private List<IEntityAction> _actions;
+        private List<IMappable> _memory = new List<IMappable>();
 
         public Player(string name, int level, char gender, int[] abilityScoreValues, 
                 Race race, Caste caste, int team = 0, MapPoint location = null, List<Item> items = null) : 
@@ -46,15 +47,17 @@ namespace DungeonCrawler
                     }
                 }
         }  
+        private void listObjectsDirectionAndDistance(List<IMappable> objects)
+        {
+            foreach (var obj in objects)
+            {
+                var nObj = (INamed)obj;
+                Console.WriteLine($"- {nObj.Name} located {Math.Round(Location.DistanceTo(obj.Location)*5)} feet {Location.DirectionTo(obj.Location)}");
+            }
+        }
         private void describe(string targetName)
         {
-            var allHeldItems = new List<Item>();
-            foreach(var entity in (from o in Location.Map.Objects where o is Entity select (Entity)o))
-            {
-                allHeldItems.AddRange(entity.Items);
-            }
-            var possibleTargets = Location.Map.Objects.Concat(allHeldItems).Where(o => o is INamed);
-            IMappable target = possibleTargets.FirstOrDefault(t => 
+            IMappable target = _memory.FirstOrDefault(t => 
                 t is IDescribable && (t as INamed).Name.ToLower() == targetName.ToLower());
             if (target != null)
             {
@@ -62,7 +65,7 @@ namespace DungeonCrawler
             }
             else
             {
-                Console.WriteLine($"{targetName} could not be found.");
+                Console.WriteLine($"{Name} does not know of {targetName.IndefiniteArticle().ToLower()} {targetName}");
             }
         }
         private void showLegend()
@@ -83,6 +86,21 @@ namespace DungeonCrawler
             Console.ResetColor();
             
         }
+        public void AddToMemory(IMappable obj)
+        {
+            if (!_memory.Contains(obj)) _memory.Add(obj);
+        }
+        private void recallMemory()
+        {
+            _memory.AddRange(Items.Where(i => !_memory.Contains(i)));
+            var objectsOnMap = _memory.Where(o => Location.Map.Objects.Contains(o)).ToList();
+            listObjectsDirectionAndDistance(objectsOnMap);
+            foreach (var obj in _memory.Where(o => !objectsOnMap.Contains(o)))
+            {
+                var nObj = (INamed)obj;
+                Console.WriteLine($"- {nObj.Name}");
+            }
+        }
         public override void TakeTurn(Combat combat)
         {
             TakingTurn = true;
@@ -98,6 +116,7 @@ namespace DungeonCrawler
                 {
                     Console.WriteLine($"{Name}'s turn is over because {Pronouns[0].ToLower()} has died!");
                     PressAnyKeyToContinue();
+                    Console.Clear();
                     turnOver = true;
                     break;
                 }
@@ -105,6 +124,7 @@ namespace DungeonCrawler
                 {
                     Console.WriteLine($"{Name}'s turn is over because {Pronouns[0].ToLower()} has no actions left.");
                     PressAnyKeyToContinue();
+                    Console.Clear();
                     turnOver = true;
                     break;
                 }
@@ -143,7 +163,6 @@ namespace DungeonCrawler
                                 var inputNonTargetedAction = (NonTargetedAction)inputAction;
                                 actionExecuted = inputNonTargetedAction.Execute();
                             }
-                            PressAnyKeyToContinue();
                             if (actionExecuted) 
                             {
                                 actionsRemaining.Remove(inputAction.Type);
@@ -154,55 +173,52 @@ namespace DungeonCrawler
                         else
                         {
                             Console.WriteLine($"{Name} does not have a {inputAction.Type} action remaining.");
-                            PressAnyKeyToContinue();
                         }
                     }
                     else
                     {
                         Console.WriteLine($"{Name} has already expended {Pronouns[2]} uses of {inputAction.Command}.");
-                        PressAnyKeyToContinue();
                     }
                 }
                 // Check for other commands:
                 else if (input == "stats")
                 {
                     Console.WriteLine(GetAllStats());
-                    PressAnyKeyToContinue();
+                }
+                else if (input == "recall")
+                {
+                    recallMemory();
                 }
                 else if (input.Split(' ')[0] == "describe")
                 {
                     describe(string.Join(' ', input.Split(' ').Skip(1)));
-                    PressAnyKeyToContinue();
                 }
                 else if (input == "order")
                 {
                     Console.WriteLine(combat.GetInitiativeOrder());
-                    PressAnyKeyToContinue();
                 }
                 else if (input == "legend")
                 {
                     showLegend();
-                    PressAnyKeyToContinue();
                 }
                 else if (input == "help")
                 {
                     Console.WriteLine($"- stats - List {Name}'s stats.");
-                    Console.WriteLine("- describe [target name] - Describe an item or creature.");
+                    Console.WriteLine($"- recall - List all items and creature in {Name}'s memory.");
+                    Console.WriteLine($"- describe [target name] - Describe an item or creature in {Name}'s memory.");
                     Console.WriteLine("- order - Show current initiative order.");
                     Console.WriteLine("- legend - Show map legend.");
-                    PressAnyKeyToContinue();
                 }
                 else if (input == "pass")
                 {
                     Console.WriteLine($"{Name} is passing {Pronouns[2].ToLower()} turn.");
-                    PressAnyKeyToContinue();
                     turnOver = true;
                 }
                 else 
                 {
                     Console.WriteLine($"'{input}' could not be recognized. Please enter a valid command.");
-                    PressAnyKeyToContinue();
                 }
+                PressAnyKeyToContinue();
                 Console.Clear();
             }
             Console.Clear();
@@ -240,11 +256,8 @@ namespace DungeonCrawler
             else
             {
                 Console.WriteLine($"{Name} searched and found:");
-                foreach (var obj in foundObjects)
-                {
-                    var nObj = (INamed)obj;
-                    Console.WriteLine($"- {nObj.Name} located {Math.Round(Location.DistanceTo(obj.Location)*5)} feet {Location.DirectionTo(obj.Location)}.");
-                }
+                listObjectsDirectionAndDistance(foundObjects);
+                _memory.AddRange(foundObjects);
             }
             return true;
         }

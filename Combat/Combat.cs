@@ -31,7 +31,7 @@ namespace DungeonCrawler
                     }
                     else if (combatant.IsDead)
                     {
-                        Console.WriteLine($"{combatant.Name} cannot take their turn because they are dead.");
+                        Console.WriteLine($"{combatant.Name} cannot take their turn because {combatant.Pronouns[0].ToLower()} is dead.");
                         PressAnyKeyToContinue();
                     }
                     else 

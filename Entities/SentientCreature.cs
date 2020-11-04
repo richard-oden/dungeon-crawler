@@ -86,7 +86,7 @@ namespace DungeonCrawler
             string output = $"{Name}, lvl {Level.Value} {char.ToUpper(Gender)} {Race.Name} {Caste.Name}\n";
             output += $"HP: {GetHpDescription()} AC: {ArmorClass}\n";
             output += $"{AbilityScores.GetShortDescription()}\n";
-            output += $"Inventory: {ListItems()}\n";
+            output += $"Inventory: {ListItems()} ({_currentWeightCarried}/{_maxCarryWeight} lbs)\n";
             output += $"Status Effects: {ListStatusEffects()}\n";
             if (HiddenDc > 0) output += $"Currently hidden with DC of {HiddenDc}.\n";
             return output;

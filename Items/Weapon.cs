@@ -85,8 +85,8 @@ namespace DungeonCrawler
             DamageDie ??= damageDie;
             DamageType ??= damageType;
             Description += $" It deals 1d{DamageDie.NumSides.Value} {DamageType} damage and seems to have a range of {Range}ft.";
-            if (AttackBonus != 0) Description += $" It grants + {AttackBonus} to attack rolls.";
-            if (DamageBonus != 0) Description += $" It grants + {DamageBonus} to damage rolls.";
+            if (AttackBonus != 0) Description += $" It grants +{AttackBonus} to attack rolls.";
+            if (DamageBonus != 0) Description += $" It grants +{DamageBonus} to damage rolls.";
         }
 
         public Weapon(Item baseItem, string type, Die damageDie = null, string damageType = null, int attackBonus = 0, int damageBonus = 0) :

@@ -15,7 +15,7 @@ namespace DungeonCrawler
             Material = material;
             AbilityMods = abilityMods;
             Slot = slot;
-            Description = DescriptionText + $" It's considered {Material} armor and grants {ArmorClassBonus} AC when worn.";
+            Description += $" It's considered {Material} armor and grants {ArmorClassBonus} AC when worn.";
         }
 
         public Armor(Item baseItem, string slot, int ac, string material) :

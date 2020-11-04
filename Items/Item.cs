@@ -40,15 +40,31 @@ namespace DungeonCrawler
         {   
             Location = location;
         }
-
+        public static List<Item> ParseItems(string itemNames, List<Item> itemList)
+        {
+            var output = new List<Item>();
+            var itemNamesArray = itemNames.Split('/');
+            foreach (var itemName in itemNamesArray)
+            {
+                var itemToAdd = itemList.FirstOrDefault(i => i.Name == itemName);
+                if (itemToAdd != null)
+                {
+                    output.Add(itemToAdd);
+                    itemList.Remove(itemToAdd);
+                }
+                else
+                {
+                    throw new Exception($"Item '{itemName}' could not be found!");
+                }
+            }
+            return output;
+        }
         private static Dictionary<string, int> parseItemAbilityMods(string abilityMods)
         {
-            var output = new Dictionary<string, int>();
             var abilityModsArray = abilityMods.Split(' ');
-            for (var i = 0; i < abilityModsArray.Length; i += 2) 
-            {
-                output.Add(abilityModsArray[i], int.Parse(abilityModsArray[i+1]));
-            }
+            var output = abilityModsArray.Select((s, i) => new {s, i})
+    .GroupBy(x => x.i / 2)
+    .ToDictionary(g => g.First().s, g => int.Parse(g.Last().s));
             return output;
         }
         public static List<Item> ImportFromCsv(string csvFileName)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -28,9 +29,14 @@ namespace DungeonCrawler
             }
         }
 
-        public string GetDescription()
+        public static Race ParseRace(string race, string abilMods)
         {
-            return $"{Name.IndefiniteArticle()} {Name} may have better than average {NaturalAbilities.FormatToString("or")}, and its hit die is a d{HitDie.NumSides.Value}.";
+            var abilModsArray = abilMods.Split(' ');
+            if (race == "Human") return new Human(abilModsArray[0], abilModsArray[1]);
+            else if (race == "Elf") return new Elf(abilModsArray[0], abilModsArray[1]);
+            else if (race == "Dwarf") return new Dwarf(abilModsArray[0], abilModsArray[1]);
+            else if (race == "Halfling") return new Halfling(abilModsArray[0], abilModsArray[1]);
+            else throw new Exception($"'{race}' is not a valid race.");
         }
     }
 }

@@ -36,7 +36,7 @@ namespace DungeonCrawler
         protected int _baseMovementSpeed {get; set;} = 20;
         public int MovementSpeedFeet => _baseMovementSpeed + (GetModifier("DEX") * 5);
         protected int _movementRemaining {get; set;}
-        protected double _maxCarryWeight => AbilityScores.TotalScores["STR"] * 15;
+        protected double _maxCarryWeight => AbilityScores.TotalScores["STR"] * 8;
         protected double _currentWeightCarried
         {
             get
@@ -98,7 +98,7 @@ namespace DungeonCrawler
             string output = $"{Name}, lvl {Level.Value} {char.ToUpper(Gender)}\n";
             output += $"HP: {GetHpDescription()} AC: {ArmorClass}\n";
             output += $"{AbilityScores.GetShortDescription()}\n";
-            output += $"Inventory: {ListItems()}";
+            output += $"Inventory: {ListItems()} ({_currentWeightCarried}/{_maxCarryWeight} lbs)\n";
             output += $"Status Effects: {ListStatusEffects()}";
             return output;
         }
@@ -267,7 +267,7 @@ namespace DungeonCrawler
             else if (piTargetProp.PropertyType == typeof(Stat))
             {
                 MethodInfo miTargetProp = typeof(Stat).GetMethod("ChangeValue", BindingFlags.Public | BindingFlags.Instance);
-                miTargetProp.Invoke(piTargetProp.GetValue(this), new object[] {statusEffect.ValueChange});
+                miTargetProp.Invoke(piTargetProp.GetValue(this), new object[] {statusEffect.ValueChange, false});
             }
             else if (piTargetProp.PropertyType == typeof(AbilityScores))
             {
@@ -343,10 +343,14 @@ namespace DungeonCrawler
                     {
                         if (target.HiddenDc <= PassivePerception)
                         {
+                            // reveal target if attempting to hide from this entity:
                             target.RevealIfHidden(this);
+                            // if target is player add this entity to its memory:
+                            if (target is Player && HiddenDc <= target.PassivePerception) (target as Player).AddToMemory(this);
                             Console.WriteLine($"{Name} is attacking {target.Name}...");
                             var attackResult = AttackRoll();
                             bool crit = attackResult.NaturalResults[0] == 20;
+                            // if attack roll beats target AC or it is a crit, roll damage
                             if (attackResult.TotalResult >= target.ArmorClass || crit)
                             {
                                 Console.WriteLine(crit ? "It's a critical hit!" : "It's a hit!");
@@ -533,45 +537,6 @@ namespace DungeonCrawler
             return source.Split(' ').Select(i => int.Parse(i)).ToArray();
         }
 
-        private static Race parseRace(string race, string abilMods)
-        {
-            var abilModsArray = abilMods.Split(' ');
-            if (race == "Human") return new Human(abilModsArray[0], abilModsArray[1]);
-            else if (race == "Elf") return new Elf(abilModsArray[0], abilModsArray[1]);
-            else if (race == "Dwarf") return new Dwarf(abilModsArray[0], abilModsArray[1]);
-            else if (race == "Halfling") return new Halfling(abilModsArray[0], abilModsArray[1]);
-            else throw new Exception($"'{race}' is not a valid race.");
-        }
-
-        private static Caste parseCaste(string caste)
-        {
-            if (caste == "Rogue") return new Rogue();
-            else if (caste == "Cleric") return new Cleric();
-            else if (caste == "Fighter") return new Fighter();
-            else if (caste == "Wizard") return new Wizard();
-            else throw new Exception($"'{caste}' is not a valid caste.");
-        }
-
-        private static List<Item> parseItems(string itemNames, List<Item> itemList)
-        {
-            var output = new List<Item>();
-            var itemNamesArray = itemNames.Split('/');
-            foreach (var itemName in itemNamesArray)
-            {
-                var itemToAdd = itemList.FirstOrDefault(i => i.Name == itemName);
-                if (itemToAdd != null)
-                {
-                    output.Add(itemToAdd);
-                    itemList.Remove(itemToAdd);
-                }
-                else
-                {
-                    throw new Exception($"Item '{itemName}' could not be found!");
-                }
-            }
-            return output;
-        }
-
         public static List<Entity> ImportFromCsv(string csvFileName, List<Item> itemList)
         {
             string currentDirectory = Directory.GetCurrentDirectory();
@@ -594,8 +559,8 @@ namespace DungeonCrawler
                         Entities.Add(new Player(
                             name: values[1], level: int.Parse(values[2]), gender: char.Parse(values[3]),
                             abilityScoreValues: parseAbilityScoreValues(values[4]), 
-                            race: parseRace(values[5], values[6]), caste: parseCaste(values[7]), 
-                            team: int.Parse(values[8]), items: parseItems(values[9], itemList)
+                            race: Race.ParseRace(values[5], values[6]), caste: Caste.ParseCaste(values[7]), 
+                            team: int.Parse(values[8]), items: Item.ParseItems(values[9], itemList)
                         ));
                     }
                     else

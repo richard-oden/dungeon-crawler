@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace DungeonCrawler
@@ -12,10 +13,13 @@ namespace DungeonCrawler
         public SentientCreature SentientCreature {get; set;}
         public virtual IEntityAction Action {get; protected set;}
         
-        public string GetDescription()
+        public static Caste ParseCaste(string caste)
         {
-            string useShield = CanUseShield ? "can" : "cannot";
-            return $"{Name}s rely on {AbilityProficiency}, and may use {WeaponProficiency.FormatToString("and")}. They are proficient in {ArmorProficiency} armor, and {useShield} use shields.";
+            if (caste == "Rogue") return new Rogue();
+            else if (caste == "Cleric") return new Cleric();
+            else if (caste == "Fighter") return new Fighter();
+            else if (caste == "Wizard") return new Wizard();
+            else throw new Exception($"'{caste}' is not a valid caste.");
         }
     }
 }
