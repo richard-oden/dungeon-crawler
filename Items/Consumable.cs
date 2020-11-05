@@ -4,7 +4,6 @@ namespace DungeonCrawler
 {
     public class Consumable : Item
     {
-        public int Duration {get; private set;}
 
         public List<StatusEffect> StatusEffects {get; private set;}
 

@@ -11,16 +11,10 @@ namespace DungeonCrawler
         public int Width {get; private set;}
         public int Height {get; private set;}
         public List<IMappable> Objects {get; private set;}
+        private List<int[]> _bloodSplatterCoordinates = new List<int[]>();
         
         public Map()
         {
-            Objects = new List<IMappable>();
-        }
-        
-        public Map(int width, int height)
-        {
-            Width = width;
-            Height = height;
             Objects = new List<IMappable>();
         }
 
@@ -131,48 +125,62 @@ namespace DungeonCrawler
         {
            return coordinates.Where(c => !Objects.Any(o => o.Location.X == c[0] && o.Location.Y == c[1])).ToArray();
         }
-
-        public int[][] GetAllOpenSpaces()
+        public int[][] GetCoordinatesWithin(int xStart, int xEnd, int yStart, int yEnd)
         {
-            var allCoordinates = new List<int[]>();
-            for (int x = 0; x < Width; x++)
+            var coords = new List<int[]>();
+            for (int x = xStart; x <= xEnd; x++)
             {
-                for (int y = 0; y < Height; y++)
+                for (int y = yStart; y <= yEnd; y++)
                 {
-                    allCoordinates.Add(new[] {x, y});
+                    coords.Add(new[] {x, y});
                 }
             }
-            return GetOpenSpaces(allCoordinates);
+            return coords.ToArray();
         }
 
+        public void CreateBloodSplatter(MapPoint location)
+        {
+            int numberOfSplats = Dice.D4.Roll();
+            var splats = new List<int[]>();
+            for (int i = 0; i < numberOfSplats; i++)
+            {
+                int[] splat = GetCoordinatesWithin(location.X-1, location.X+1, location.Y-1, location.Y+1).RandomElement();
+                if (!splats.Contains(splat)) splats.Add(splat);
+            }
+            foreach (var splat in splats) if (!_bloodSplatterCoordinates.Contains(splat)) _bloodSplatterCoordinates.Add(splat);
+        }
         public void PrintMap()
         {
             for (int y = 0; y < Height; y++)
             {
                 for (int x = 0; x < Width; x++)
                 {
-                    ConsoleColor consoleColor = DarkGray;
+                    ConsoleColor fgColor = DarkGray;
+                    if (_bloodSplatterCoordinates.Any(c => c[0] == x && c[1] == y))
+                    {
+                        Console.BackgroundColor = DarkRed;
+                    }
                     var thisObject = Objects.FirstOrDefault(o => o.Location.X == x && o.Location.Y == y);
                     if (thisObject != null)
                     {
                         if (thisObject is Entity || thisObject is Item)
                         {
-                            consoleColor = White;
+                            fgColor = White;
                             if ((thisObject is Entity) && (thisObject as Entity).TakingTurn)
                             {
-                                consoleColor = DarkBlue;
+                                fgColor = DarkBlue;
                             }
                         }
-                        Console.ForegroundColor = consoleColor;
+                        Console.ForegroundColor = fgColor;
                         Console.Write(thisObject.Symbol + " ");
                     }
                     else
                     {
                         Console.Write("  ");
                     }
+                    Console.ResetColor();
                 }
                 Console.WriteLine();
-                Console.ResetColor();
             }
         }
     }

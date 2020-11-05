@@ -35,9 +35,9 @@ namespace DungeonCrawler
 
             Console.ResetColor();
             Console.OutputEncoding = Encoding.UTF8;
-            List<Item> demoItems = Item.ImportFromCsv("Items/DemoItems.csv");
-            List<Entity> demoEntities = Entity.ImportFromCsv("Entities/DemoEntities.csv", demoItems);
-            Map demoMap = Map.CsvToMap("Maps/CombatDemoMap.csv", demoItems, demoEntities);
+            List<Item> demoItems = Item.ImportFromCsv("data/DemoItems.csv");
+            List<Entity> demoEntities = Entity.ImportFromCsv("data/DemoEntities.csv", demoItems);
+            Map demoMap = Map.CsvToMap("data/CombatDemoMap.csv", demoItems, demoEntities);
             var combatants = (from o in demoMap.Objects where o is Entity select (Entity)o).ToList();
 
             var demoCombat = new Combat(combatants);

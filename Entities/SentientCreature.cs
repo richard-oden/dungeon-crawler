@@ -99,7 +99,7 @@ namespace DungeonCrawler
             {
                 var newArmor = (Armor)newItem;
                 var equippedArmor = from i in Items where i is Armor select (Armor)i;
-                if (equippedArmor.Any(a => a.Slot == newArmor.Slot)) 
+                if (equippedArmor.Any(a => a.Slot.ToLower() == newArmor.Slot.ToLower())) 
                 {
                     canAddItem = false;
                     Console.WriteLine($"{Name} already has {newArmor.Slot} armor equipped.");

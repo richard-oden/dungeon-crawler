@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using static DungeonCrawler.ExtensionsAndHelpers;
-using static DungeonCrawler.Dice;
 
 namespace DungeonCrawler
 {
@@ -29,6 +28,7 @@ namespace DungeonCrawler
                 Caste.Action,
                 Race.Action
             };
+            _memory.AddRange(Items);
         }
         
         private void printActions(List<string> actionsRemaining)
@@ -83,6 +83,10 @@ namespace DungeonCrawler
             Console.Write(Symbols.Barrier);
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("  - wall or other barrier");
+            Console.BackgroundColor = ConsoleColor.DarkRed;
+            Console.Write(" ");
+            Console.BackgroundColor = default;
+            Console.WriteLine("  - blood splatter");
             Console.ResetColor();
             
         }
@@ -92,7 +96,7 @@ namespace DungeonCrawler
         }
         private void recallMemory()
         {
-            _memory.AddRange(Items.Where(i => !_memory.Contains(i)));
+            foreach (var item in Items) AddToMemory(item);
             var objectsOnMap = _memory.Where(o => Location.Map.Objects.Contains(o)).ToList();
             listObjectsDirectionAndDistance(objectsOnMap);
             foreach (var obj in _memory.Where(o => !objectsOnMap.Contains(o)))
@@ -243,7 +247,6 @@ namespace DungeonCrawler
                 return false;
             }
         }
-
         // Minor actions:
         public override bool Search()
         {

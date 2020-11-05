@@ -3,7 +3,6 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using static DungeonCrawler.Dice;
-using static DungeonCrawler.ExtensionsAndHelpers;
 using System.IO;
 
 namespace DungeonCrawler
@@ -33,7 +32,7 @@ namespace DungeonCrawler
         public int TempHp {get; set;}
         public bool IsDead => CurrentHp.Value <= 0;
         public int CurrentInitiative {get; protected set;}
-        protected int _baseMovementSpeed {get; set;} = 20;
+        protected int _baseMovementSpeed {get; set;} = 30;
         public int MovementSpeedFeet => _baseMovementSpeed + (GetModifier("DEX") * 5);
         protected int _movementRemaining {get; set;}
         protected double _maxCarryWeight => AbilityScores.TotalScores["STR"] * 8;
@@ -358,11 +357,13 @@ namespace DungeonCrawler
                                 Console.WriteLine($"{target.Name} takes {damageResult} points of damage!");
                                 target.ChangeHp(damageResult*-1);
                                 if (target.IsDead) Console.WriteLine($"{target.Name} has succumbed to their injuries!");
+                                Location.Map.CreateBloodSplatter(target.Location);
                             }
                             else
                             {
                                 Console.WriteLine("It's a miss!");
                             }
+                            if (this is Player) (this as Player).AddToMemory(target);
                             return true;
                         }
                         else

@@ -17,26 +17,6 @@ namespace DungeonCrawler
             Y = y;
             Map = map;
         }
-      
-        public override string ToString()
-        {
-            return X + "," + Y;
-        }
-      
-        public override bool Equals(object obj)
-        {
-            if (!(obj is MapPoint))
-            {
-                return false;
-            }
-            MapPoint that = obj as MapPoint;
-            return (this.X == that.X) && (this.Y == that.Y);
-        }
-      
-        public override int GetHashCode()
-        {
-            return X.GetHashCode() * 31 + Y.GetHashCode();
-        }
         
         public decimal DistanceTo(int x, int y)
         {

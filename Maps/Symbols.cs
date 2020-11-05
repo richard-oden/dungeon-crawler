@@ -8,7 +8,7 @@ namespace DungeonCrawler
         public static readonly char Player = '\u0445';
         public static readonly char Friendly = '\u263A';
         public static readonly char Hostile = '\u2639';
-        public static readonly char Dead = '\u2620';
-        public static readonly char Item = '\u2042';
+        public static readonly char Dead = '\u2126';
+        public static readonly char Item = '\u263C';
     }
 }

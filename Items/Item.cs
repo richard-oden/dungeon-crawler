@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using System.Reflection;
-using Newtonsoft.Json;
 
 namespace DungeonCrawler
 {
@@ -63,8 +61,8 @@ namespace DungeonCrawler
         {
             var abilityModsArray = abilityMods.Split(' ');
             var output = abilityModsArray.Select((s, i) => new {s, i})
-    .GroupBy(x => x.i / 2)
-    .ToDictionary(g => g.First().s, g => int.Parse(g.Last().s));
+                .GroupBy(x => x.i / 2)
+                .ToDictionary(g => g.First().s, g => int.Parse(g.Last().s));
             return output;
         }
         public static List<Item> ImportFromCsv(string csvFileName)

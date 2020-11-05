@@ -1,5 +1,3 @@
-using System;
-
 namespace DungeonCrawler
 {
     public interface IEntityAction
