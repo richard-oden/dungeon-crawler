@@ -28,7 +28,7 @@ namespace DungeonCrawler
                 Caste.Action,
                 Race.Action
             };
-            _memory.AddRange(Items);
+            AddRangeToMemory(Items.Cast<IMappable>().ToList());
         }
         
         private void printActions(List<string> actionsRemaining)
@@ -94,6 +94,10 @@ namespace DungeonCrawler
         {
             if (!_memory.Contains(obj)) _memory.Add(obj);
         }
+        public void AddRangeToMemory(List<IMappable> objects)
+        {
+            foreach (var obj in objects) AddToMemory(obj);
+        }
         private void recallMemory()
         {
             foreach (var item in Items) AddToMemory(item);
@@ -109,7 +113,7 @@ namespace DungeonCrawler
         {
             TakingTurn = true;
             MaintainStatusEffects();
-            var actionsRemaining = new List<string>() {"major", "minor", "move"};
+            var actionsRemaining = new List<string>() {"major", "minor", "minor", "move"};
             _movementRemaining = MovementSpeedFeet;
             bool turnOver = false;
             while (!turnOver)
@@ -260,7 +264,7 @@ namespace DungeonCrawler
             {
                 Console.WriteLine($"{Name} searched and found:");
                 listObjectsDirectionAndDistance(foundObjects);
-                _memory.AddRange(foundObjects);
+                AddRangeToMemory(foundObjects);
             }
             return true;
         }

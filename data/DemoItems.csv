@@ -19,9 +19,9 @@ Armor,Legs,Plated Greaves,100,33,plate,1,,,Heavy plate greaves.
 Armor,Feet,Plated Boots,50,8,plate,1,,,Heavy plate boots.
 Armor,Torso,Leather Vest,50,8,leather,1,,,A leather vest. Defensive AND stylish!
 Armor,Legs,Leather Pants,40,4,leather,1,,,Leather pants.
-Armor,Legs,Leather Boots,20,2,leather,1,,,Leather boots.
+Armor,Feet,Leather Boots,20,2,leather,1,,,Leather boots.
 Armor,Torso,Chestplate of the Champion,400,35,plate,2,,STR 2,A battered and dented plated chestpiece. You can sense that it's been though thousands of battles.
-Armor,Hands,Gauntlets of Divine Invocation,250,30,chain,1,,WIS 2,A pair of chainmail gloves decorated with symbols of your god.
+Armor,Hands,Gauntlets of Divine Invocation,250,8,chain,1,,WIS 2,A pair of chainmail gloves decorated with symbols of your god.
 Armor,Feet,Shoes of Deft Movement,180,2,leather,1,,DEX 2,A pair of lightweight leather shoes. They seem especially aerodynamic.
 Armor,Head,Hat of Intellect,180,1,cloth,0,,INT 2,A wizard's hat. Wearing it makes you feel a little smarter.
 ,,,,,,,,,
@@ -33,6 +33,7 @@ Consumable,HealingMinor,Minor Health Potion,25,1,,,,,A small vial of bubbling re
 Consumable,HealingMajor,Major Health Potion,50,1,,,,,A large vial of bubbling red liquid.
 Consumable,Invisible,Invisibility Potion,100,1,,,,,A bottle of crystal clear liquid.
 Consumable,Toughened,Ironskin Potion,100,1,,,,,A bottle of what looks like liquid mercury.
+Consumable,Quickened,Quickstep Potion,100,1,,,,,A small vial of fizzy yellow liquid.
 ,,,,,,,,,
 Item Type,,Name,Value,Weight,,,,,Description Text
 Misc,,Humanoid Skull,0,2,,,,,It's hard to tell what race this could have come from.

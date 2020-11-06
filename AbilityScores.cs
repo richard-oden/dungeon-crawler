@@ -59,26 +59,33 @@ namespace DungeonCrawler
         //Take subset of mods to be applied, generate full set of modifiers:
         public void AddMods(Dictionary<string, int> currentMods, Dictionary<string, int> newModsSubset)
         {
-            // Console.WriteLine("Attempting to add mods...");
             foreach (var abil in BaseScores)
             {
                 int modifier = 0;
                 if (newModsSubset.ContainsKey(abil.Key))
                 {
                     modifier += newModsSubset[abil.Key];
-                    // Console.WriteLine($"Modifier for {abil.Key} is {modifier}");
                 }
 
                 // Add to modifiers if already generated:
                 if (currentMods.ContainsKey(abil.Key))
                 {
-                    // Console.WriteLine($"Matching key '{abil.Key}' found, adding modifier of {modifier}...");
                     currentMods[abil.Key] += modifier;
                 }
                 else
                 {
-                    // Console.WriteLine($"Creating new key '{abil.Key}' with modifier of {modifier}...");
                     currentMods.Add(abil.Key, modifier);
+                }
+            }
+        }
+
+        public void RemoveMods(Dictionary<string, int> currentMods, Dictionary<string, int> modsToRemove)
+        {
+            foreach (var abil in BaseScores)
+            {
+                if (modsToRemove.ContainsKey(abil.Key))
+                {
+                    currentMods[abil.Key] -= modsToRemove[abil.Key];
                 }
             }
         }

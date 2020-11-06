@@ -114,7 +114,9 @@ namespace DungeonCrawler
             {
                 var newWeapon = (Weapon)newItem;
                 var heldWeapons = from i in Items where i is Weapon select (Weapon)i;
-                if (heldWeapons.Any(w => w.TwoHanded) || heldWeapons.Where(w => !w.TwoHanded).Count() >= 2) 
+                if (heldWeapons.Any(w => w.TwoHanded) || 
+                    heldWeapons.Count() >= 1 && newWeapon.TwoHanded ||
+                    heldWeapons.Count() >= 2) 
                 {
                     canAddItem = false;
                     Console.WriteLine($"{Name} cannot hold any more weapons.");

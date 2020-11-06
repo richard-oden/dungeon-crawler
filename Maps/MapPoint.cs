@@ -30,6 +30,9 @@ namespace DungeonCrawler
 
         public bool InRangeOf(MapPoint point, int range)
         {
+            // Allows points that are diagonally adjacent to be considered within range:
+            if (range == 1 && GetAdjacentCoordinates().Any(c =>
+                c[0] == point.X && c[1] == point.Y)) return true;
             return DistanceTo(point) <= range;
         }
 
@@ -40,6 +43,7 @@ namespace DungeonCrawler
 
         public List<IMappable> GetObjectsWithinRange(int range)
         {
+            // Allows points that are diagonally adjacent to be considered within range:
             if (range == 1)
             {
                 var adjacentObjects = new List<IMappable>();

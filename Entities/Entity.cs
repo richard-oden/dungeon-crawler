@@ -174,7 +174,7 @@ namespace DungeonCrawler
             MaintainStatusEffects();
         }
 
-        public void RevealIfHidden(Entity enemy)
+        public void RevealIfHidden()
         {
             if (HiddenDc > 0)
             {
@@ -188,7 +188,8 @@ namespace DungeonCrawler
             Console.WriteLine($"{Name} is searching...");
             int perceptionRoll = AbilityCheck("WIS");
             int perceptionCheck = perceptionRoll >= PassivePerception ? perceptionRoll : PassivePerception;
-            int searchRangeFeet = (perceptionCheck - 8) * 5;
+            int searchRangeFeet = (perceptionCheck - 4) * 5;
+            Console.WriteLine($"Search range is {searchRangeFeet} feet.");
 
             var foundObjects = Location.GetObjectsWithinRange(searchRangeFeet / 5).Where(fO => fO is INamed && fO != this).ToList();
             foundObjects.RemoveAll(fO =>
@@ -200,7 +201,7 @@ namespace DungeonCrawler
                                   !hasLineOfSightTo(fO));
             foreach (var obj in foundObjects)
             {
-                if (obj is Entity && (obj as Entity).Team != Team) (obj as Entity).RevealIfHidden(this);
+                if (obj is Entity && (obj as Entity).Team != Team) (obj as Entity).RevealIfHidden();
             }
             return foundObjects;
         }
@@ -218,6 +219,7 @@ namespace DungeonCrawler
             if (_currentWeightCarried + newItem.Weight <= _maxCarryWeight)
             {
                 Items.Add(newItem);
+                AbilityScores.AddMods(AbilityScores.ItemMods, newItem.AbilityMods);
                 return true;
             }
             else
@@ -232,6 +234,7 @@ namespace DungeonCrawler
             if (Items.Contains(heldItem))
             {
                 Items.Remove(heldItem);
+                AbilityScores.RemoveMods(AbilityScores.ItemMods, heldItem.AbilityMods);
                 return true;
             }
             else
@@ -343,7 +346,7 @@ namespace DungeonCrawler
                         if (target.HiddenDc <= PassivePerception)
                         {
                             // reveal target if attempting to hide from this entity:
-                            target.RevealIfHidden(this);
+                            target.RevealIfHidden();
                             // if target is player add this entity to its memory:
                             if (target is Player && HiddenDc <= target.PassivePerception) (target as Player).AddToMemory(this);
                             Console.WriteLine($"{Name} is attacking {target.Name}...");
@@ -352,6 +355,7 @@ namespace DungeonCrawler
                             // if attack roll beats target AC or it is a crit, roll damage
                             if (attackResult.TotalResult >= target.ArmorClass || crit)
                             {
+                                RevealIfHidden();
                                 Console.WriteLine(crit ? "It's a critical hit!" : "It's a hit!");
                                 var damageResult = DamageRoll(crit);
                                 Console.WriteLine($"{target.Name} takes {damageResult} points of damage!");

@@ -21,18 +21,16 @@ namespace DungeonCrawler
 
             Console.WriteLine("Combat has begun! Current initiative order:");
             Console.WriteLine(GetInitiativeOrder());
-            while (true)
+            while (StillFighting())
             {
                 foreach (Entity combatant in Combatants)
                 {
-                    if (!StillFighting()) 
-                    {
-                        break;
-                    }
+                    if (!StillFighting()) break;
                     else if (combatant.IsDead)
                     {
-                        Console.WriteLine($"{combatant.Name} cannot take their turn because {combatant.Pronouns[0].ToLower()} is dead.");
+                        Console.WriteLine($"{combatant.Name} cannot take {combatant.Pronouns[2].ToLower()}turn because {combatant.Pronouns[0].ToLower()} is dead.");
                         PressAnyKeyToContinue();
+                        Console.Clear();
                     }
                     else 
                     {

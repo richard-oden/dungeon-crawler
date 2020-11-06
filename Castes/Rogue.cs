@@ -19,13 +19,15 @@ namespace DungeonCrawler
 
         private bool assassinate(string targetName)
         {
+            // Make copy of hidden dc, because a successful attack would normally reset hidden dc:
+            int hiddenDcBeforeAttack = SentientCreature.HiddenDc;
             if (SentientCreature.Attack(targetName))
             {
                 var entitiesOnMap = from o in SentientCreature.Location.Map.Objects where o is Entity select (Entity)o;
                 var target = entitiesOnMap.Where(o => o is Entity)
                             .FirstOrDefault(e => (e as Entity).Name.ToLower() == targetName.ToLower());
                 Console.WriteLine($"{SentientCreature.Name} is attempting to assassinate {target.Name}!");
-                if (SentientCreature.HiddenDc > target.PassivePerception)
+                if (hiddenDcBeforeAttack > target.PassivePerception)
                 {
                     int passiveDexterity = SentientCreature.AbilityScores.TotalScores["DEX"];
                     if (target.AbilityCheck("CON") < passiveDexterity)
