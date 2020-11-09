@@ -53,7 +53,6 @@ namespace DungeonCrawler
                 return score;
             }
         }
-
         protected override int _attackRangeFeet
         {
             get
@@ -68,7 +67,22 @@ namespace DungeonCrawler
                     return base._attackRangeFeet;
                 }
             }
-        }       
+        }
+        protected override string _damageType
+        {
+            get
+            {
+                var heldWeapon = Items.FirstOrDefault(i => i is Weapon);
+                if (heldWeapon != null)
+                {
+                    return (heldWeapon as Weapon).DamageType;
+                }
+                else
+                {
+                    return base._damageType;
+                }
+            }
+        }
         public SentientCreature(string name, int level, char gender, Race race, Caste caste, int team, 
                 int[] abilityScoreValues = null, MapPoint location = null, List<Item> items = null) : 
             base(name, level, gender, team, abilityScoreValues, null, location, items)

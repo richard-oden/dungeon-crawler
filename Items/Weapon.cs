@@ -82,8 +82,9 @@ namespace DungeonCrawler
             Type = type;
             AttackBonus = attackBonus;
             DamageBonus = damageBonus;
-            DamageDie ??= damageDie;
-            DamageType ??= damageType;
+            if (damageDie != null) DamageDie = damageDie;
+            if (!String.IsNullOrEmpty(damageType)) DamageType = damageType;
+            
             Description += $" It deals 1d{DamageDie.NumSides.Value} {DamageType} damage and seems to have a range of {Range}ft.";
             if (AttackBonus != 0) Description += $" It grants +{AttackBonus} to attack rolls.";
             if (DamageBonus != 0) Description += $" It grants +{DamageBonus} to damage rolls.";

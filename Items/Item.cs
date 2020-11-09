@@ -25,8 +25,8 @@ namespace DungeonCrawler
             abilityMods ??= new Dictionary<string, int>();
             AbilityMods = abilityMods;
             DescriptionText = descriptionText;
-            Description = DescriptionText + $" It weighs roughly {Weight}lbs and may be worth around {Value} gold.";
-            if (AbilityMods != null)
+            Description = DescriptionText + $" It weighs roughly {Weight}lb(s) and may be worth around {Value} gold.";
+            if (AbilityMods != null || AbilityMods.Count > 0)
             {
                 string abilModsString = AbilityMods.Select(aM => $"{aM.Key} + {aM.Value}").FormatToString("and");
                 descriptionText += $" It gives the following ability score bonuses when held: {abilModsString}.";

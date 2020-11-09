@@ -28,7 +28,7 @@ namespace DungeonCrawler
                     if (!StillFighting()) break;
                     else if (combatant.IsDead)
                     {
-                        Console.WriteLine($"{combatant.Name} cannot take {combatant.Pronouns[2].ToLower()}turn because {combatant.Pronouns[0].ToLower()} is dead.");
+                        Console.WriteLine($"{combatant.Name} cannot take {combatant.Pronouns[2].ToLower()} turn because {combatant.Pronouns[0].ToLower()} is dead.");
                         PressAnyKeyToContinue();
                         Console.Clear();
                     }

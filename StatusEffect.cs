@@ -47,5 +47,22 @@ namespace DungeonCrawler
             }
             return output;
         }
+
+        public static List<StatusEffect> GetFromDamageType(string damageType)
+        {
+            var statusEffects = damageType switch
+            {
+                "slashing" => ParseStatusEffects("Bleeding"),
+                "piercing" => ParseStatusEffects("Bleeding"),
+                "bludgeoning" => ParseStatusEffects("Concussed"),
+                "magic" => ParseStatusEffects("Weakened"),
+                "fire" => ParseStatusEffects("OnFire"),
+                "ice" => ParseStatusEffects("Frostbitten Slowed"),
+                "acid" => ParseStatusEffects("CoveredInAcid"),
+                "thunder" => ParseStatusEffects("Deafened"),
+                _ => throw new System.Exception($"'{damageType}' was not a recognized damage type!")
+            };
+            return statusEffects;
+        }
     }
 }

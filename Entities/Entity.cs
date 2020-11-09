@@ -48,6 +48,7 @@ namespace DungeonCrawler
         public List<Item> Items {get; protected set;} = new List<Item>();
         public MapPoint Location {get; protected set;}
         protected virtual int _attackRangeFeet {get; set;} = 5;
+        protected virtual string _damageType {get; set;} = "bludgeoning";
         public virtual char Symbol => IsDead ? Symbols.Dead : Team == 0 ? Symbols.Friendly : Symbols.Hostile;
         public virtual string Description {get; protected set;}
         public List<StatusEffect> StatusEffects {get; protected set;} = new List<StatusEffect>();
@@ -358,9 +359,16 @@ namespace DungeonCrawler
                                 RevealIfHidden();
                                 Console.WriteLine(crit ? "It's a critical hit!" : "It's a hit!");
                                 var damageResult = DamageRoll(crit);
-                                Console.WriteLine($"{target.Name} takes {damageResult} points of damage!");
+                                Console.WriteLine($"{target.Name} takes {damageResult} points of {_damageType} damage!");
                                 target.ChangeHp(damageResult*-1);
-                                if (target.IsDead) Console.WriteLine($"{target.Name} has succumbed to their injuries!");
+                                if (crit && target.AbilityCheck("CON", true) < 10)
+                                {
+                                    foreach (var se in StatusEffect.GetFromDamageType(_damageType))
+                                    {
+                                        target.AddStatusEffect(se);
+                                    }
+                                }
+                                if (target.IsDead) Console.WriteLine($"{target.Name} has succumbed to {target.Pronouns[2].ToLower()} injuries!");
                                 Location.Map.CreateBloodSplatter(target.Location);
                             }
                             else
