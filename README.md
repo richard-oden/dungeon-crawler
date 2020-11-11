@@ -14,7 +14,7 @@ At the start of the game, four pre-generated player characters are loaded and ra
 - Passive perception, derived from WIS score
 - Actions, which may be taken during their turn (e.g., attack, hide, use item, etc.)
 
-Each character inherits actions, innate abilities, and limitations from from its race and caste. For example, Eldfar is an elven wizard. As an elf, he has the entrance action and as a wizard he has the slow action. Like other elves, he is especially intelligent and wise. Because he is a wizard, he may only wear cloth armor and use magical implements as weapons.
+Each character inherits actions, innate abilities, and limitations from from its race and caste. For example, Eldfar is an elven wizard. As an elf, he has the `entrance` action and as a wizard he has the `slow` action. Like other elves, he is especially intelligent and wise. Because he is a wizard, he may only wear cloth armor and use magical implements as weapons.
 
 The map is also populated with randomly selected items. These may be consumable (potions), weapons, armor, or useless junk. Items can be picked up, dropped, used (if they are consumable), or even knocked out of your hands by an opponent.
 
@@ -34,9 +34,10 @@ These are just some of the mechanics you will be interacting with. As you play, 
 - Uses a regex (see `ExtensionsAndHelpers.FromTitleOrCamelCase()`)
 - Uses many LINQ queries
 - Data is visualized using a map
-Bonus Features!
+### Bonus Features!
 - Uses Reflection (see `StatusEffect.ParseStatusEffects()` and `Entity.ApplyStatusEffect()`)
 - Has some extension methods (see `ExtensionsAndHelpers`)
+- Uses delegates (see `IEntityAction`, `TargetedAction`, `NonTargetedAction`)
 
 ## Instructions
 Make sure the `data` folder is located in the same directory as `dungeon-crawler.exe`, then open `dungeon-crawler.exe` to start the game.
